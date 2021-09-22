@@ -3,7 +3,7 @@
 
 ##### _Developer’s manual version_
 
-Version: 1.15 April 2021
+Version: 1.16 September 2021
 
 Contact e-mail address: contact@omnikassa.rabobank.nl
 
