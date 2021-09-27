@@ -29,6 +29,7 @@ Contact e-mail address: contact@omnikassa.rabobank.nl
     + [Field description](#field-description)
   * [Creating endpoint](#creating-endpoint)
   * [Sending order](#sending-order)
+  * [Improve customer experience using payment brand parameters](#payment-brand-parameters)
 - [Consumer pays order](#consumer-pays-order)
 - [Receive updates about orders](#receive-updates-about-orders)
 - [Request available payment brands](#request-available-payment-brands)
@@ -384,10 +385,9 @@ Below are all the fields with the name, a description, and the rules to which th
 | `billingDetails`       | The billing address of this order                                                                                     | Optional                                                                                                                                                                                                                                                                                           |
 | `initiatingParty`      | An ID identifying the party from which the order announcement was initiated                                           | Optional. This field must be left empty unless agreed otherwise with Rabobank                                                                                                                                                                                                                      |
 | `skipHppResultPage`    | Use this field to skip the hosted result page (also referred to as the success/thank you page) in the payment process | Optional
-
-The payment method and the force options work as follows. When the payment method is _iDEAL_ and the Force option _FORCE_ONCE_ has been selected, 
-then this means that the consumer will immediately start an _iDEAL_ payment upon arrival at Rabobank OmniKassa and thus arrives on the bank selecting screen. 
-The customer then has the option to finalize the payment or to choose another payment method by clicking on `<Choose Other Payment method>`. 
+The payment method and the force options work as follows. When the payment method is _iDEAL_ and the Force option _FORCE_ONCE_ has been selected,
+then this means that the consumer will immediately start an _iDEAL_ payment upon arrival at Rabobank OmniKassa and thus arrives on the bank selecting screen.
+The customer then has the option to finalize the payment or to choose another payment method by clicking on `<Choose Other Payment method>`.
 With the _FORCE_ALWAYS_ it is not possible for the consumer to choose another payment method. The only options are to approve or cancel the payment request.
 
 
@@ -929,6 +929,39 @@ The object of type `MerchantOrderResponse` as returned by the Java SDK contains 
 | redirectUrl      | The URL to which the consumer must be redirected to in order to pay for the order.                                                                                                             |
 | omnikassaOrderId | A unique ID that Rabo OmniKassa will assign to the order. This ID is needed to link the payment result as returned by the webhook notification mechanism to the correct order (see [Receive updates about orders](#receive-updates-about-orders)). |
 
+
+<a name="payment-brand-parameters"></a>
+#### Improve customer experience using payment brand parameters
+The default behavior for an online payment is to redirect the customer to the payment pages of Rabo OmniKassa after the order was announced.
+These are Rabobank branded-pages hosted by Rabo OmniKassa and allow the customer to select the payment brand and (depending on the brand) to specify additional details.
+For an improved online payment experience Rabo OmniKassa provides means to skip some of these steps by letting the webshop supply payment brand information.
+For example, in the checkout process the web shop can already provide an option for the customer to select iDEAL as a payment brand as well as the bank.
+In this section we describe how the SDK facilitates this improved experience.
+
+The first improvement is to allow the customer to select the payment brand in the web shop. For this the SDK provides functionality to retrieve the payment brands
+that are currently configured and active within Rabo OmniKassa for the web shop. For more information on this functionality see
+[Request available payment brands](request-available-payment-brands). The returned payment brand information can then be used 
+for example to populate a select box in the web shop.
+
+To supply the payment brand to Rabo OmniKassa two fields must be specified in the order announcement:
+
+# The `paymentBrand` field must contain the name of the payment brand, for example `IDEAL`.
+# The `paymentBrandForce` field must specify whether the customer can select an alternative payment in the hosted payment pages.
+
+We explain the payment method and the force options in more detail. When the payment method is `IDEAL` and the Force option `FORCE_ONCE` has been specified,
+then the customer will immediately start an iDEAL payment upon arrival at Rabobank OmniKassa and thus arrives on the bank selecting screen.
+The customer then has the option to finalize the payment or to choose another payment method by clicking on `<Choose Other Payment method>`.
+With the `FORCE_ALWAYS` it is not possible for the consumer to choose another payment method. The only options are to approve or cancel the payment.
+
+The second improvement applies only to iDEAL and allows the customer to also select his or her bank in the web shop. For this the SDK provides functionality to retrieve the
+list of participating banks. For more information on this functionality see [Request available iDEAL issuers](request-available-ideal-issuers).
+The returned list of banks can then be used to populate another select box in the web shop that becomes visible to the customer after iDEAL is selected as payment brand.
+
+To supply the bank to Rabo OmniKassa the web shop needs to specify the `paymentBrandMetaData` field in addition to the above-mentioned `paymentBrand` the `paymentBrandForce` fields in the order announcement.
+The `paymentBrandMetaData` field is a key-value map. To specify the bank include an entry in this map with key 'issuerId' and as value the ID of the bank as specified in the issuer list, for example 'RABONL2U'.
+
+By implementing these 2 improvements in the web shop the customer will be immediately redirected to the iDEAL page of the bank after announcing the order to authorize the transaction.
+
 <a name="consumer-pays-order"></a>
 ### Consumer pays order
 
@@ -1229,7 +1262,9 @@ Only the payment brands that are returned in this list and are active can be use
 
 <a name="request-available-ideal-issuers"></a>
 ### Request available iDEAL issuers
-In this section we explain how to obtain the iDEAL issuers.
+In this section we explain how to obtain the iDEAL issuers. This functionality is typically used to directly start an 
+iDEAL transaction from the web shop without first redirecting the consumer to the payment pages of Rabo OmniKassa to
+select iDEAL as the payment brand and then the issuer
 
 **Important:** The list of iDEAL issuers should not be requested real-time for each payment, but instead be cached locally and updated daily.
 
