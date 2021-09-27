@@ -945,8 +945,8 @@ for example to populate a select box in the web shop.
 
 To supply the payment brand to Rabo OmniKassa two fields must be specified in the order announcement:
 
-# The `paymentBrand` field must contain the name of the payment brand, for example `IDEAL`.
-# The `paymentBrandForce` field must specify whether the customer can select an alternative payment in the hosted payment pages.
+1. The `paymentBrand` field must contain the name of the payment brand, for example `IDEAL`.
+2. The `paymentBrandForce` field must specify whether the customer can select an alternative payment in the hosted payment pages.
 
 We explain the payment method and the force options in more detail. When the payment method is `IDEAL` and the Force option `FORCE_ONCE` has been specified,
 then the customer will immediately start an iDEAL payment upon arrival at Rabobank OmniKassa and thus arrives on the bank selecting screen.
