@@ -581,7 +581,7 @@ OrderItem pears = new OrderItem.Builder()
 ```
 
 **.NET**
-```csharp
+```cs
 OrderItem apples = new OrderItem.Builder()
    .WithId("1")
    .WithQuantity(2)
