@@ -1184,9 +1184,9 @@ foreach($paymentBrands as $paymentBrand) {
 **Java**
 ```java
 import nl.rabobank.gict.payments_savings.omnikassa_frontend.sdk.model.response.PaymentBrandsResponse;
-import nl.rabobank.gict.payments_savings.omnikassa_frontend.sdk.model.respones.PaymentBrandInfo;
+import nl.rabobank.gict.payments_savings.omnikassa_frontend.sdk.model.response.PaymentBrandInfo;
 
-PaymentBrandsReponse response = endpoint.retrievePaymentBrands();
+PaymentBrandsResponse response = endpoint.retrievePaymentBrands();
 for (PaymentBrandInfo paymentBrand : response.getPaymentBrands()) {
   String name = paymentBrand.getName();
   PaymentBrandStatus status = paymentBrand.getStatus();
@@ -1226,3 +1226,63 @@ Each element of this list is an object of type `PaymentBrandInfo` containing the
 | `active` | A boolean indicating if the payment brand is active (true) or inactive (false).                                             |
 
 Only the payment brands that are returned in this list and are active can be used for payments. 
+
+<a name="request-available-ideal-issuers"></a>
+### Request available iDEAL issuers
+In this section we explain how to obtain the iDEAL issuers.
+
+**Important:**  The list of iDEAL issuers should not be requested real-time for each payment, but instead be cached locally and updated daily.
+
+Given an `Endpoint` ([Creating endpoint](#creating-endpoint)) we can obtain this list as followings.
+
+**PHP**
+```php
+use nl\rabobank\gict\payments_savings\omnikassa_sdk\model\response\IdealIssuersResponse;
+use nl\rabobank\gict\payments_savings\omnikassa_sdk\model\response\IdealIssuersInfo;
+
+$response = $endpoint->retrieveIDEALIssuers();
+$issuers = $response->getIssuers();
+foreach($issuer as $issuers) {
+  // use the properties in the issuer variable for further processing
+}
+```
+
+**Java**
+```java
+import nl.rabobank.gict.payments_savings.omnikassa_frontend.sdk.model.response.IdealIssuersResponse;
+import nl.rabobank.gict.payments_savings.omnikassa_frontend.sdk.model.response.IdealIssuer;
+
+IdealIssuersResponse response = endpoint.retrieveIdealIssuers();
+for (IdealIssuer issuer : response.getIssuers()) {
+  // use the properties in the issuer variable for further processing
+}
+```
+
+**.NET**
+```csharp
+using OmniKassa.Model.Response;
+
+IdealIssuersResponse response = endpoint.RetrieveIdealIssuers();
+foreach(IdealIssuer issuer in response.IdealIssuers)
+{
+  // use the properties in the issuer variable for further processing
+}
+```
+
+As shown above the `retrieveIdealIssers()` method of the Endpoint class returns an instance of `IdealIssuersResponse`.
+This class provides a method `getIssuers()` that returns a list containing all available iDEAL issuers.
+Each element of this list is an object containing the details of an iDEAL issuer as shown in the following table.
+
+| Field          | Description                                                                                                                                                                                                                                                                      |
+|--------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `id`           | A string of at most 11 characters containing the unique ID of the iDEAL issuer. This ID can be used in the `paymentBrandMetaData` field of an order to immediately start an iDEAL transaction for this issuer.                                                                     |
+| `name`         | The name of the Issuer as should be presented to the consumer when rendering the list of iDEAL issuers. This field is a string of at most 35 characters.                                                                                                                         |
+| `logos`        | A list of objects containing logo details of the issuer. This information can be used to render the logo of the issuer in the webshop. See table below for more details on the logo properties.                                                                                  |
+| `countryNames` | Contains the country names in the official languages of the country, separated by a '/' symbol. As prescribed by the iDEAL integration guide this only needs to be displayed if there are banks from more than one country on the Issuer list (which is currently not the case). |
+
+The table below contains the properties of an iDEAL issuer logo.
+
+| Field      | Description                                                                                |
+|----------- | -------------------------------------------------------------------------------------------|
+| `url`      | A publicly accessible URL where you can download the logo of the issuer.                   |
+| `mimeType` | The mime type (also referred to as the media type) of the logo. This always an image type. |
