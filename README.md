@@ -70,7 +70,7 @@ The jar files that this SDK depends on are in the Lib subdirectory. Both the SDK
 The .NET SDK supports the following .NET platforms:
 
 -  .NET Framework (version 4.5.2 or higher)
--  .NET Core 1.x / 2.x / 3.x (version 1.3 or higher)
+-  .NET Core 1.x / 2.x / 3.x (version 1.3 or higher) (TO UPDATE)
 
 If applicable, this document will display separate code examples for these platforms.
 
@@ -134,6 +134,7 @@ use nl\rabobank\gict\payments_savings\omnikassa_sdk\model\Money;
 use nl\rabobank\gict\payments_savings\omnikassa_sdk\model\OrderItem;
 use nl\rabobank\gict\payments_savings\omnikassa_sdk\model\PaymentBrand;
 use nl\rabobank\gict\payments_savings\omnikassa_sdk\model\PaymentBrandForce;
+use nl\rabobank\gict\payments_savings\omnikassa_sdk\model\PaymentBrandMetaData;
 use nl\rabobank\gict\payments_savings\omnikassa_sdk\model\ProductType;
 use nl\rabobank\gict\payments_savings\omnikassa_sdk\model\request\MerchantOrder;
 use nl\rabobank\gict\payments_savings\omnikassa_sdk\model\Address;
@@ -182,6 +183,10 @@ $customerInformation = CustomerInformation::createFrom([
     'telephoneNumber' => '0204971111'
 ]);
 
+$paymentBrandMetaData = PaymentBrandMetaData::createFrom([
+    'issuerId' => 'RABONL2U',
+]);
+        
 $order = MerchantOrder::createFrom([
     'merchantOrderId' => '100',
     'description' => 'Order ID: 100',
@@ -192,13 +197,16 @@ $order = MerchantOrder::createFrom([
     'customerInformation' => $customerInformation,
     'language' => 'NL',
     'merchantReturnURL' => 'http://localhost/',
+    'skipHppResultPage' => true,
     'paymentBrand' => PaymentBrand::IDEAL,
-    'paymentBrandForce' => PaymentBrandForce::FORCE_ONCE
+    'paymentBrandForce' => PaymentBrandForce::FORCE_ONCE,
+    'paymentBrandMetaData' => $paymentBrandMetaData
 ]);
 ```
 
 **Java** 
 ```java
+import java.util.Collections;
 import nl.rabobank.gict.payments_savings.omnikassa_frontend.sdk.model.*;
 import nl.rabobank.gict.payments_savings.omnikassa_frontend.sdk.model.order_details.*;
 import nl.rabobank.gict.payments_savings.omnikassa_frontend.sdk.model.enums.*;
@@ -257,8 +265,10 @@ MerchantOrder order = new MerchantOrder.Builder()
     .withBillingDetail(billingDetails)
     .withLanguage(Language.NL)
     .withMerchantReturnURL("http://localhost/")
+    .withSkipHppResultPage(true)
     .withPaymentBrand(PaymentBrand.IDEAL)
     .withPaymentBrandForce(PaymentBrandForce.FORCE_ONCE)
+    .withPaymentBrandMetaData(Collections.singletonMap("issuerId", "RABONL2U"))    
     .build();
 ```
 
@@ -311,6 +321,9 @@ Address shippingDetails = new Address.Builder()
    .WithCity("Haarlem")
    .WithCountryCode(CountryCode.NL)
    .Build();
+   
+Dictionary<string, string> paymentBrandMetaData = new Dictionary<string, string>();
+paymentBrandMetaData.Add("issuerId", "RABONL2U");
 
 MerchantOrder order = new MerchantOrder.Builder()
    .WithMerchantOrderId("ORDID123")
@@ -322,8 +335,10 @@ MerchantOrder order = new MerchantOrder.Builder()
    .WithBillingDetail(billingDetails)
    .WithLanguage(Language.NL)
    .WithMerchantReturnURL("http://localhost/")
+   .WithSkipHppResultPage(true)
    .WithPaymentBrand(PaymentBrand.IDEAL)
    .WithPaymentBrandForce(PaymentBrandForce.FORCE_ALWAYS)
+   .WithPaymentBrandMetaData(paymentBrandMetaData)
    .Build();
 ```
 
@@ -361,9 +376,9 @@ Below are all the fields with the name, a description, and the rules to which th
 | `paymentBrand`         | The payment method to which the consumer is limited                                                                   | Optional                                                                                                                                                                                                                                                                                           |
 |                        |                                                                                                                       | Must be one of the following values: IDEAL, AFTERPAY, PAYPAL, MasterCard, VISA, BANCONTACT, MAESTRO, V_PAY                                                                                                                                                                                         |
 |                        |                                                                                                                       | When value is CARDS, then all card payment methods are offered (MasterCard, Visa, Bancontact, Maestro, and V PAY)                                                                                                                                                                                  |
-| `paymentBrandForce`    | Is used to enforce the payment method                                                                                 | optional                                                                                                                                                                                                                                                                                           |
+| `paymentBrandForce`    | Is used to enforce the payment method                                                                                 | Optional                                                                                                                                                                                                                                                                                           |
 |                        |                                                                                                                       | Must be one of the following values: FORCE_ONCE or FORCE_ALWAYS                                                                                                                                                                                                                                    |
-| `paymentBrandMetaData` | Additional parameters specific to the specified payment method                                                        | Optional, when specified the fields `paymentBrand` and `paymentBrandForce` must be set as well.                                                                                                                                                                                                    |
+| `paymentBrandMetaData` | Additional parameters specific to the supplied payment method                                                         | Optional, when specified the fields `paymentBrand` and `paymentBrandForce` must be set as well.                                                                                                                                                                                                    |
 |                        |                                                                                                                       | The value of this field is a key-value map of strings. For more information on supported entries please consult the section <link>.                                                                                                                                                                |
 | `customerInformation`  | A limited set of consumer information                                                                                 | Optional                                                                                                                                                                                                                                                                                           |
 | `billingDetails`       | The billing address of this order                                                                                     | Optional                                                                                                                                                                                                                                                                                           |
