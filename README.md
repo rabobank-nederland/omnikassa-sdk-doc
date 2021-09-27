@@ -32,7 +32,7 @@ Contact e-mail address: contact@omnikassa.rabobank.nl
 - [Consumer pays order](#consumer-pays-order)
 - [Receive updates about orders](#receive-updates-about-orders)
 - [Request available payment brands](#request-available-payment-brands)
-
+- [Request available iDEAL issuers](#request-available-ideal-issuers)
 
 <a name="requirements-and-installation-instructions"></a>
 ### Requirements and installation instructions
@@ -1231,7 +1231,7 @@ Only the payment brands that are returned in this list and are active can be use
 ### Request available iDEAL issuers
 In this section we explain how to obtain the iDEAL issuers.
 
-**Important:**  The list of iDEAL issuers should not be requested real-time for each payment, but instead be cached locally and updated daily.
+**Important:** The list of iDEAL issuers should not be requested real-time for each payment, but instead be cached locally and updated daily.
 
 Given an `Endpoint` ([Creating endpoint](#creating-endpoint)) we can obtain this list as followings.
 
