@@ -15,6 +15,7 @@ Contact e-mail address: contact@omnikassa.rabobank.nl
 
 ### Table of contents
 
+- [Changelog](#changelog)
 - [Requirements and installation instructions](#requirements-and-installation-instructions)
   * [PHP SDK](#php-sdk)
   * [Java SDK](#java-sdk)
