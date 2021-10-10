@@ -940,17 +940,17 @@ The default behavior for an online payment is to redirect the customer to the pa
 order has been announced. These are Rabobank-branded pages hosted by Rabo OmniKassa and they guide the customer through 
 the payment process by presenting a list of payment brands and to ask the customer for additional details, depending on
 the selected payment brand. For an improved online payment experience Rabo OmniKassa provides means to skip some of
-these steps by letting the web shop supply payment brand information. For example, in the checkout process the web shop
+these steps by letting the webshop supply payment brand information. For example, in the checkout process the webshop
 can already provide an option for the customer to select iDEAL as a payment brand as well as the bank. In this section 
 we describe how the SDK facilitates this improved experience.
 
-The first improvement is to allow the customer to select the payment brand in the web shop. For this the SDK provides
+The first improvement is to allow the customer to select the payment brand in the webshop. For this the SDK provides
 functionality to retrieve the payment brands that are currently configured and active within Rabo OmniKassa for the web 
 shop. For a technical description on how to obtain the brands see
 [Request available payment brands](#request-available-payment-brands). The returned payment brand information can then
-be used for example to populate a select box in the web shop.
+be used for example to populate a select box in the webshop.
 
-Once the customer has selected a payment brand, the web shop needs to supply two additional fields in the order
+Once the customer has selected a payment brand, the webshop needs to supply two additional fields in the order
 announcement:
 
 1. The `paymentBrand` field must contain the name of the selected payment brand, for example `IDEAL`.
@@ -964,23 +964,23 @@ or to choose another payment method by clicking on `<Choose Other Payment method
 possible for the customer to choose another payment method. The only options are to approve or cancel the payment after 
 selecting the bank.
 
-The second improvement applies only to iDEAL and allows the customer to also select his or her bank in the web shop. For
+The second improvement applies only to iDEAL and allows the customer to also select his or her bank in the webshop. For
 this the SDK provides functionality to retrieve the list of participating banks. For a technical description on how to 
 obtain this list please consult [Request available iDEAL issuers](#request-available-ideal-issuers). The returned list 
-of banks can then be used to populate another select box in the web shop that becomes visible after the customer has
+of banks can then be used to populate another select box in the webshop that becomes visible after the customer has
 selected iDEAL as payment brand.
 
-Once the bank has been selected the web shop needs to include the ID of the bank in the `paymentBrandMetaData` field in 
+Once the bank has been selected the webshop needs to include the ID of the bank in the `paymentBrandMetaData` field in 
 addition to the above-mentioned `paymentBrand` the `paymentBrandForce` fields. The `paymentBrandMetaData` field is a 
 key-value map. To specify the bank include an entry in this map with key 'issuerId' and as value the ID of the bank as 
 specified in the issuer list, for example 'RABONL2U'.
 
-By implementing these 2 improvements in the web shop the customer will be immediately redirected to the iDEAL page of 
+By implementing these 2 improvements in the webshop the customer will be immediately redirected to the iDEAL page of 
 the selected bank after announcing the order to authorize the transaction.
 
 A final optimization can be achieved by setting the `skipHppResultPage` field in the order announcement to `true`. After
 authorizing the transaction in the iDEAL page of the selected bank, the customer will be immediately redirected back to
-the web shop. The success page (also referred to as the “Thank You” page) of the hosted payment pages will be skipped in
+the webshop. The success page (also referred to as the “Thank You” page) of the hosted payment pages will be skipped in
 this case.
 
 <a name="customer-name-dashboard"></a>
@@ -1294,7 +1294,7 @@ Only the payment brands that are returned in this list and are active can be use
 <a name="request-available-ideal-issuers"></a>
 ### Request available iDEAL issuers
 In this section we explain how to obtain the iDEAL issuers. This functionality is typically used to directly start an 
-iDEAL transaction from the web shop without first redirecting the customer to the payment pages of Rabo OmniKassa to
+iDEAL transaction from the webshop without first redirecting the customer to the payment pages of Rabo OmniKassa to
 select iDEAL as the payment brand and then the issuer.
 
 **Important:** The list of iDEAL issuers should not be requested real-time for each payment, but instead be cached 
