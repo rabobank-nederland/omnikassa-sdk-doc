@@ -81,7 +81,7 @@ If applicable, this document will display separate code examples for these platf
 In order to establish a HTTPS connection with Rabo OmniKassa, the Java Runtime environment, .NET environment or PHP (depending on the chosen SDK) 
 should be configured with a CA bundle so that the certificate of https://betalen.rabobank.nl can be validated. 
 Normally this is already the case and you do not need to do anything.  
-If you are running PHP under Windows, you may need to configure the php.ini to include the property openssl.cafile containing the path to the CA bundle. Consult the PHP documentation for more information.
+If you are running PHP under Windows, you may need to configure the php.ini to include the property openssl.cafile containing the path to the CA bundle. Consuflt the PHP documentation for more information.
 
 <a name="introduction"></a>
 ### Introduction
@@ -479,28 +479,24 @@ The supported ZIP code formats are as follows. The remaining country codes only 
 
 **CustomerInformation**
 
-| Field             | Description                            | Rules                                            |
-|------------------ | -------------------------------------- | -------------------------------------------------|
-| `emailAddress`    | The email address of the customer      | Optional                                         |
-|                   |                                        | Must be a valid email address                    |
-|                   |                                        | Has a maximum length of 45 characters.           |
-| `dateOfBirth`     | The date of birth of the customer      | Optional                                         |
-|                   |                                        | Must be in the format: DD-MM-YYYY                |
-| `gender`          | customer Sex                           | Optional                                         |
-|                   |                                        | Must be one of the following values: M, F        |
-| `initials`        | customer Initials                      | Optional                                         |
-|                   |                                        | May consist only of alphabet characters          |
-|                   |                                        | Has a maximum length of 256 characters.          |
-| `telephoneNumber` | The telephone number of the customer   | Optional                                         |
-|                   |                                        | May consist of numbers and alphabet characters   |
-|                   |                                        | Has a maximum length of 31 characters.           |
-| `fullName`        | The full name of the customer          | Optional                                         |
-|                   |                                        | The full name of the customer; use this field    |
-|                   |                                        | have the name of the customer visible in         |
-|                   |                                        | Omni Dashboard. For more information please      |
-|                   |                                        | check [this section](#customer-name-dashboard).  |
-|                   |                                        | The maximum length of this field is 128          |
-|                   |                                        | characters.                                      |
+| Field             | Description                            | Rules                                                                   |
+|------------------ | -------------------------------------- | ------------------------------------------------------------------------|
+| `emailAddress`    | The email address of the customer      | Optional                                                                |
+|                   |                                        | Must be a valid email address                                           |
+|                   |                                        | Has a maximum length of 45 characters.                                  |
+| `dateOfBirth`     | The date of birth of the customer      | Optional                                                                |
+|                   |                                        | Must be in the format: DD-MM-YYYY                                       |
+| `gender`          | customer Sex                           | Optional                                                                |
+|                   |                                        | Must be one of the following values: M, F                               |
+| `initials`        | customer Initials                      | Optional                                                                |
+|                   |                                        | May consist only of alphabet characters                                 |
+|                   |                                        | Has a maximum length of 256 characters.                                 |
+| `telephoneNumber` | The telephone number of the customer   | Optional                                                                |
+|                   |                                        | May consist of numbers and alphabet characters                          |
+|                   |                                        | Has a maximum length of 31 characters.                                  |
+| `fullName`        | The full name of the customer          | Optional                                                                |
+|                   |                                        | Has a maximum length of 128 characters.                                 |
+|                   |                                        | Consult [this section](#customer-name-dashboard) for more information.  |
 
 For the payment method _AfterPay_, Rabo OmniKassa shows a page to the customer in which he can complete or modify the above fields after the order announcement. 
 Your webshop will **not** be informed of the details that are filled in during this process.
