@@ -381,16 +381,14 @@ Below are all the fields with the name, a description, and the rules to which th
 | `paymentBrandForce`    | Is used to enforce the payment method                                                                                 | Optional                                                                                                                                                                                                                                                                                           |
 |                        |                                                                                                                       | Must be one of the following values: FORCE_ONCE or FORCE_ALWAYS                                                                                                                                                                                                                                    |
 | `paymentBrandMetaData` | Additional parameters specific to the supplied payment method                                                         | Optional, when this field is supplied then the fields `paymentBrand` and `paymentBrandForce` must be set as well.                                                                                                                                                                                  |
-|                        |                                                                                                                       | The value of this field is a key-value map of strings. For more information on supported entries please consult the section <link>.                                                                                                                                                                |
+|                        |                                                                                                                       | The value of this field is a key-value map of strings.                                                                                                                                                                                                                                             |
 | `customerInformation`  | A limited set of consumer information                                                                                 | Optional                                                                                                                                                                                                                                                                                           |
 | `billingDetails`       | The billing address of this order                                                                                     | Optional                                                                                                                                                                                                                                                                                           |
 | `initiatingParty`      | An ID identifying the party from which the order announcement was initiated                                           | Optional. This field must be left empty unless agreed otherwise with Rabobank                                                                                                                                                                                                                      |
 | `skipHppResultPage`    | Use this field to skip the hosted result page (also referred to as the success/thank you page) in the payment process | Optional
-The payment method and the force options work as follows. When the payment method is _iDEAL_ and the Force option _FORCE_ONCE_ has been selected,
-then this means that the consumer will immediately start an _iDEAL_ payment upon arrival at Rabobank OmniKassa and thus arrives on the bank selecting screen.
-The customer then has the option to finalize the payment or to choose another payment method by clicking on `<Choose Other Payment method>`.
-With the _FORCE_ALWAYS_ it is not possible for the consumer to choose another payment method. The only options are to approve or cancel the payment request.
 
+For more information on how to use the `paymentBrand`, `paymentBrandForce`, `paymentBrandMetaData` and the
+`skipHppResultPage` please consult [this section](#payment-brand-parameters).
 
 **Money**
 
@@ -1301,7 +1299,8 @@ In this section we explain how to obtain the iDEAL issuers. This functionality i
 iDEAL transaction from the web shop without first redirecting the consumer to the payment pages of Rabo OmniKassa to
 select iDEAL as the payment brand and then the issuer.
 
-**Important:** The list of iDEAL issuers should not be requested real-time for each payment, but instead be cached locally and updated daily.
+**Important:** The list of iDEAL issuers should not be requested real-time for each payment, but instead be cached 
+locally and updated daily.
 
 Given an `Endpoint` ([Creating endpoint](#creating-endpoint)) we can obtain this list as follows.
 
@@ -1350,7 +1349,7 @@ Each element of this list is an object containing the details of a single iDEAL 
 | `logos`        | A list of objects containing logo details of the issuer. This information can be used to render the logo of the issuer in the webshop. See table below for more details on the logo properties.                                                                                  |
 | `countryNames` | Contains the country names in the official languages of the country, separated by a '/' symbol. As prescribed by the iDEAL integration guide this only needs to be displayed if there are banks from more than one country on the Issuer list (which is currently not the case). |
 
-The table below contains the properties of an iDEAL issuer logo.
+The table below contains the properties of an iDEAL issuer logo. 
 
 | Field      | Description                                                                                |
 |----------- | -------------------------------------------------------------------------------------------|
