@@ -388,7 +388,8 @@ Below are all the fields with the name, a description, and the rules to which th
 | `skipHppResultPage`    | Use this field to skip the hosted result page (also referred to as the success/thank you page) in the payment process | Optional
 
 For more information on how to use the `paymentBrand`, `paymentBrandForce`, `paymentBrandMetaData` and the
-`skipHppResultPage` please consult [this section](#payment-brand-parameters).
+`skipHppResultPage` please consult
+[Improve customer experience using payment brand parameters](#payment-brand-parameters).
 
 **Money**
 
@@ -949,8 +950,8 @@ we describe how the SDK facilitates this improved experience.
 The first improvement is to allow the customer to select the payment brand in the web shop. For this the SDK provides
 functionality to retrieve the payment brands that are currently configured and active within Rabo OmniKassa for the web 
 shop. For a technical description on how to obtain the brands see
-[Request available payment brands](request-available-payment-brands). The returned payment brand information can then be
-used for example to populate a select box in the web shop.
+[Request available payment brands](#request-available-payment-brands). The returned payment brand information can then
+be used for example to populate a select box in the web shop.
 
 Once the customer has selected a payment brand, the web shop needs to supply two additional fields in the order
 announcement:
@@ -968,8 +969,8 @@ selecting the bank.
 
 The second improvement applies only to iDEAL and allows the customer to also select his or her bank in the web shop. For
 this the SDK provides functionality to retrieve the list of participating banks. For a technical description on how to 
-obtain this list please consult [Request available iDEAL issuers](request-available-ideal-issuers). The returned list of
-banks can then be used to populate another select box in the web shop that becomes visible after the customer has
+obtain this list please consult [Request available iDEAL issuers](#request-available-ideal-issuers). The returned list 
+of banks can then be used to populate another select box in the web shop that becomes visible after the customer has
 selected iDEAL as payment brand.
 
 Once the bank has been selected the web shop needs to include the ID of the bank in the `paymentBrandMetaData` field in 
