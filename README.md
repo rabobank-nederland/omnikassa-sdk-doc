@@ -35,6 +35,16 @@ Contact e-mail address: contact@omnikassa.rabobank.nl
 - [Request available payment brands](#request-available-payment-brands)
 - [Request available iDEAL issuers](#request-available-ideal-issuers)
 
+<a name="changelog"></a>
+### Changelog
+
+#### Version 1.16
+* Added section on retrieval of iDEAL issuers.
+* Added section on improving customer experience using payment brand parameters.
+* Documented new property `fullName` of CustomerInformation.
+* Updated supported .NET versions.
+* Various minor corrections and improvements.
+
 <a name="requirements-and-installation-instructions"></a>
 ### Requirements and installation instructions
 
