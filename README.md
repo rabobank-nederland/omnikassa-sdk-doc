@@ -3,7 +3,7 @@
 
 ##### _Developer’s manual version_
 
-Version: 1.16 September 2021
+Version: 1.16 October 2021
 
 Contact e-mail address: contact@omnikassa.rabobank.nl
 
@@ -70,8 +70,9 @@ The jar files that this SDK depends on are in the Lib subdirectory. Both the SDK
 #### .NET SDK
 The .NET SDK supports the following .NET platforms:
 
--  .NET Framework (version 4.5.2 or higher)
--  .NET Core 1.x / 2.x / 3.x (version 1.3 or higher) (TO UPDATE)
+- .NET Framework (version 4.5.2 or higher)
+- .NET Core 2.1 / 3.1
+- .NET 5.0
 
 If applicable, this document will display separate code examples for these platforms.
 
@@ -181,11 +182,8 @@ $customerInformation = CustomerInformation::createFrom([
     'dateOfBirth' => '20-03-1987',
     'gender' => 'M',
     'initials' => 'J.M.',
-    'telephoneNumber' => '0204971111'
-]);
-
-$paymentBrandMetaData = PaymentBrandMetaData::createFrom([
-    'issuerId' => 'RABONL2U',
+    'telephoneNumber' => '0204971111',
+    'fullName' => 'Jan van Veen'
 ]);
         
 $order = MerchantOrder::createFrom([
@@ -201,7 +199,9 @@ $order = MerchantOrder::createFrom([
     'skipHppResultPage' => true,
     'paymentBrand' => PaymentBrand::IDEAL,
     'paymentBrandForce' => PaymentBrandForce::FORCE_ONCE,
-    'paymentBrandMetaData' => $paymentBrandMetaData
+    'paymentBrandMetaData' => PaymentBrandMetaData::createFrom([
+        'issuerId' => 'RABONL2U',
+    ])
 ]);
 ```
 
@@ -211,7 +211,6 @@ import java.util.Collections;
 import nl.rabobank.gict.payments_savings.omnikassa_frontend.sdk.model.*;
 import nl.rabobank.gict.payments_savings.omnikassa_frontend.sdk.model.order_details.*;
 import nl.rabobank.gict.payments_savings.omnikassa_frontend.sdk.model.enums.*;
-
 
 OrderItem orderItem = new OrderItem.Builder()
     .withId("1")
@@ -230,6 +229,7 @@ CustomerInformation customerInformation = new CustomerInformation.Builder()
     .withGender("M")
     .withEmailAddress("jan.van.veen@gmail.com")
     .withDateOfBirth("20-03-1987")
+    .withFullName("Jan van Veen")
     .build();
 
 Address shippingDetails = new Address.Builder()
@@ -297,6 +297,7 @@ CustomerInformation customerInformation = new CustomerInformation.Builder()
    .WithGender(Gender.M)
    .WithEmailAddress("jan.van.veen@gmail.com")
    .WithDateOfBirth("20-03-1987")
+   .WithFullName("Jan van Veen")
    .Build();
 
 Address shippingDetails = new Address.Builder()
@@ -369,7 +370,7 @@ Below are all the fields with the name, a description, and the rules to which th
 |                        |                                                                                                                       | 1. The order items are filtered from the order announcement, and                                                                                                                                                                                                                                   |
 |                        |                                                                                                                       | 2. AfterPay is not possible as a payment method                                                                                                                                                                                                                                                    |
 | `shippingDetails`      | The delivery address of this order                                                                                    | Optional                                                                                                                                                                                                                                                                                           |
-| `language`             | The texts on the payment pages will be in this language                                                               | Optional, standard we use en.                                                                                                                                                                                                                                                                      |
+| `language`             | The texts on the payment pages will be in this language                                                               | Optional, the default value is EN.                                                                                                                                                                                                                                                                 |
 |                        |                                                                                                                       | ISO 3166-1 Alpha-2, limited to NL, EN, FR and DE.                                                                                                                                                                                                                                                  |
 |                        |                                                                                                                       | If an unknown value is used: then EN will be used.                                                                                                                                                                                                                                                 |
 | `merchantReturnURL`    | The URL the consumer will return to after the payment steps have been completed                                       | Required                                                                                                                                                                                                                                                                                           |
@@ -379,7 +380,7 @@ Below are all the fields with the name, a description, and the rules to which th
 |                        |                                                                                                                       | When value is CARDS, then all card payment methods are offered (MasterCard, Visa, Bancontact, Maestro, and V PAY)                                                                                                                                                                                  |
 | `paymentBrandForce`    | Is used to enforce the payment method                                                                                 | Optional                                                                                                                                                                                                                                                                                           |
 |                        |                                                                                                                       | Must be one of the following values: FORCE_ONCE or FORCE_ALWAYS                                                                                                                                                                                                                                    |
-| `paymentBrandMetaData` | Additional parameters specific to the supplied payment method                                                         | Optional, when specified the fields `paymentBrand` and `paymentBrandForce` must be set as well.                                                                                                                                                                                                    |
+| `paymentBrandMetaData` | Additional parameters specific to the supplied payment method                                                         | Optional, when this field is supplied then the fields `paymentBrand` and `paymentBrandForce` must be set as well.                                                                                                                                                                                  |
 |                        |                                                                                                                       | The value of this field is a key-value map of strings. For more information on supported entries please consult the section <link>.                                                                                                                                                                |
 | `customerInformation`  | A limited set of consumer information                                                                                 | Optional                                                                                                                                                                                                                                                                                           |
 | `billingDetails`       | The billing address of this order                                                                                     | Optional                                                                                                                                                                                                                                                                                           |
@@ -494,6 +495,13 @@ The supported ZIP code formats are as follows. The remaining country codes only 
 | `telephoneNumber` | The telephone number of the consumer   | Optional                                         |
 |                   |                                        | May consist of numbers and alphabet characters   |
 |                   |                                        | Has a maximum length of 31 characters.           |
+| `fullName`        | The full name of the consumer          | Optional                                         |
+|                   |                                        | The full name of the consumer; use this field    |
+|                   |                                        | have the name of the consumer visible in         |
+|                   |                                        | Omni Dashboard. For more information please      |
+|                   |                                        | check section TODO                               |
+|                   |                                        | The maximum length of this field is 128          |
+|                   |                                        | characters.                                      |
 
 For the payment method _AfterPay_, Rabo OmniKassa shows a page to the consumer in which he can complete or modify the above fields after the order announcement. 
 Your webshop will **not** be informed of the details that are filled in during this process.
@@ -904,7 +912,7 @@ MerchantOrderResponse response = endpoint.announce(order);
 return "redirect:" + response.getRedirectUrl();
 ```
 
-**.NET Standard 1.3**
+**.NET Standard**
 ```csharp
 using Microsoft.AspNetCore.Mvc;
 
@@ -932,35 +940,60 @@ The object of type `MerchantOrderResponse` as returned by the Java SDK contains 
 
 <a name="payment-brand-parameters"></a>
 #### Improve customer experience using payment brand parameters
-The default behavior for an online payment is to redirect the customer to the payment pages of Rabo OmniKassa after the order was announced.
-These are Rabobank branded-pages hosted by Rabo OmniKassa and allow the customer to select the payment brand and (depending on the brand) to specify additional details.
-For an improved online payment experience Rabo OmniKassa provides means to skip some of these steps by letting the webshop supply payment brand information.
-For example, in the checkout process the web shop can already provide an option for the customer to select iDEAL as a payment brand as well as the bank.
-In this section we describe how the SDK facilitates this improved experience.
+The default behavior for an online payment is to redirect the customer to the payment pages of Rabo OmniKassa after the 
+order has been announced. These are Rabobank-branded pages hosted by Rabo OmniKassa and they guide the customer through 
+the payment process by presenting a list of payment brands and to ask the customer for additional details, depending on
+the selected payment brand. For an improved online payment experience Rabo OmniKassa provides means to skip some of
+these steps by letting the web shop supply payment brand information. For example, in the checkout process the web shop
+can already provide an option for the customer to select iDEAL as a payment brand as well as the bank. In this section 
+we describe how the SDK facilitates this improved experience.
 
-The first improvement is to allow the customer to select the payment brand in the web shop. For this the SDK provides functionality to retrieve the payment brands
-that are currently configured and active within Rabo OmniKassa for the web shop. For more information on this functionality see
-[Request available payment brands](request-available-payment-brands). The returned payment brand information can then be used 
-for example to populate a select box in the web shop.
+The first improvement is to allow the customer to select the payment brand in the web shop. For this the SDK provides
+functionality to retrieve the payment brands that are currently configured and active within Rabo OmniKassa for the web 
+shop. For a technical description on how to obtain the brands see
+[Request available payment brands](request-available-payment-brands). The returned payment brand information can then be
+used for example to populate a select box in the web shop.
 
-To supply the payment brand to Rabo OmniKassa two fields must be specified in the order announcement:
+Once the customer has selected a payment brand, the web shop needs to supply two additional fields in the order
+announcement:
 
-1. The `paymentBrand` field must contain the name of the payment brand, for example `IDEAL`.
-2. The `paymentBrandForce` field must specify whether the customer can select an alternative payment in the hosted payment pages.
+1. The `paymentBrand` field must contain the name of the selected payment brand, for example `IDEAL`.
+2. The `paymentBrandForce` field must specify whether the customer can select an alternative payment in the hosted
+   payment pages.
 
-We explain the payment method and the force options in more detail. When the payment method is `IDEAL` and the Force option `FORCE_ONCE` has been specified,
-then the customer will immediately start an iDEAL payment upon arrival at Rabobank OmniKassa and thus arrives on the bank selecting screen.
-The customer then has the option to finalize the payment or to choose another payment method by clicking on `<Choose Other Payment method>`.
-With the `FORCE_ALWAYS` it is not possible for the consumer to choose another payment method. The only options are to approve or cancel the payment.
+We explain the payment method and the force options in more detail. When the payment method is `IDEAL` and the Force 
+option `FORCE_ONCE` has been specified, then the customer will immediately start an iDEAL payment upon arrival at 
+Rabo OmniKassa and thus arrives on the bank selecting screen. The customer then has the option to finalize the payment 
+or to choose another payment method by clicking on `<Choose Other Payment method>`. With the `FORCE_ALWAYS` it is not
+possible for the consumer to choose another payment method. The only options are to approve or cancel the payment after 
+selecting the bank.
 
-The second improvement applies only to iDEAL and allows the customer to also select his or her bank in the web shop. For this the SDK provides functionality to retrieve the
-list of participating banks. For more information on this functionality see [Request available iDEAL issuers](request-available-ideal-issuers).
-The returned list of banks can then be used to populate another select box in the web shop that becomes visible to the customer after iDEAL is selected as payment brand.
+The second improvement applies only to iDEAL and allows the customer to also select his or her bank in the web shop. For
+this the SDK provides functionality to retrieve the list of participating banks. For a technical description on how to 
+obtain this list please consult [Request available iDEAL issuers](request-available-ideal-issuers). The returned list of
+banks can then be used to populate another select box in the web shop that becomes visible after the customer has
+selected iDEAL as payment brand.
 
-To supply the bank to Rabo OmniKassa the web shop needs to specify the `paymentBrandMetaData` field in addition to the above-mentioned `paymentBrand` the `paymentBrandForce` fields in the order announcement.
-The `paymentBrandMetaData` field is a key-value map. To specify the bank include an entry in this map with key 'issuerId' and as value the ID of the bank as specified in the issuer list, for example 'RABONL2U'.
+Once the bank has been selected the web shop needs to include the ID of the bank in the `paymentBrandMetaData` field in 
+addition to the above-mentioned `paymentBrand` the `paymentBrandForce` fields. The `paymentBrandMetaData` field is a 
+key-value map. To specify the bank include an entry in this map with key 'issuerId' and as value the ID of the bank as 
+specified in the issuer list, for example 'RABONL2U'.
 
-By implementing these 2 improvements in the web shop the customer will be immediately redirected to the iDEAL page of the bank after announcing the order to authorize the transaction.
+By implementing these 2 improvements in the web shop the customer will be immediately redirected to the iDEAL page of 
+the selected bank after announcing the order to authorize the transaction.
+
+A final optimization can be achieved by setting the `skipHppResultPage` field in the order announcement to `true`. After
+authorizing the transaction in the iDEAL page of the selected bank, the customer will be immediately redirected back to
+the web shop. The success page (also referred to as the “Thank You” page) of the hosted payment pages will be skipped in
+this case.
+
+<a name="customer-name-dashboard"></a>
+### How to expose the name of the customer in Omni Dashboard
+In this section we specify how to include the name of the customer in the order information such that it will be visible
+in the Omni Dashboard. There are two ways on how to achieve this.
+
+1. The first and preferred approach is to specify the field `fullName` of the `CustomerInformation` structure.
+2. If this field is not set then OmniKassa will use the name as specified in the shipping details (if included) or billing details (if included), where the shipping details will take precedence.
 
 <a name="consumer-pays-order"></a>
 ### Consumer pays order
@@ -1020,7 +1053,7 @@ void paymentCompleted(HttpServletRequest request) {
 }
 ``` 
 
-**.NET Standard 1.3**
+**.NET Standard**
 ```csharp
 using System.Collections.Generic;
 using Microsoft.Extensions.Primitives;
@@ -1113,7 +1146,7 @@ ResponseEntity webhook(@RequestBody ApiNotification apiNotification) throws Rabo
 }
 ```
 
-**.NET Standard 1.3**
+**.NET Standard**
 ```csharp
 using Microsoft.AspNetCore.Mvc;
 using OmniKassa.Model.Response;
@@ -1197,6 +1230,8 @@ The SDK also provides functionality to look up all payment brands of a webshop a
 This information can be used to determine which payment brands are available to the consumer. 
 It is typically used in conjunction with the `paymentBrand` and `paymentBrandForce` fields of an order announcement ([Order announcement](#order-announcement)).
 
+**Important:** The payment brands should not be requested real-time for each payment, but instead be cached locally and updated at certain time intervals (e.g. every few hours).
+
 Given an `Endpoint` ([Creating endpoint](#creating-endpoint)) we can look up the payment brands as followings.
 
 **PHP**
@@ -1264,11 +1299,11 @@ Only the payment brands that are returned in this list and are active can be use
 ### Request available iDEAL issuers
 In this section we explain how to obtain the iDEAL issuers. This functionality is typically used to directly start an 
 iDEAL transaction from the web shop without first redirecting the consumer to the payment pages of Rabo OmniKassa to
-select iDEAL as the payment brand and then the issuer
+select iDEAL as the payment brand and then the issuer.
 
 **Important:** The list of iDEAL issuers should not be requested real-time for each payment, but instead be cached locally and updated daily.
 
-Given an `Endpoint` ([Creating endpoint](#creating-endpoint)) we can obtain this list as followings.
+Given an `Endpoint` ([Creating endpoint](#creating-endpoint)) we can obtain this list as follows.
 
 **PHP**
 ```php
@@ -1305,12 +1340,12 @@ foreach(IdealIssuer issuer in response.IdealIssuers)
 ```
 
 As shown above the `retrieveIdealIssers()` method of the Endpoint class returns an instance of `IdealIssuersResponse`.
-This class provides a method `getIssuers()` that returns a list containing all available iDEAL issuers.
-Each element of this list is an object containing the details of an iDEAL issuer as shown in the following table.
+This class provides a method `getIssuers()` that returns a list of all available iDEAL issuers.
+Each element of this list is an object containing the details of a single iDEAL issuer as shown in the following table.
 
 | Field          | Description                                                                                                                                                                                                                                                                      |
 |--------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `id`           | A string of at most 11 characters containing the unique ID of the iDEAL issuer. This ID can be used in the `paymentBrandMetaData` field of an order to immediately start an iDEAL transaction for this issuer.                                                                     |
+| `id`           | A string of at most 11 characters containing the unique ID of the iDEAL issuer. This ID must be used in the `paymentBrandMetaData` field of an order to immediately start an iDEAL transaction for this issuer.                                                                  |
 | `name`         | The name of the Issuer as should be presented to the consumer when rendering the list of iDEAL issuers. This field is a string of at most 35 characters.                                                                                                                         |
 | `logos`        | A list of objects containing logo details of the issuer. This information can be used to render the logo of the issuer in the webshop. See table below for more details on the logo properties.                                                                                  |
 | `countryNames` | Contains the country names in the official languages of the country, separated by a '/' symbol. As prescribed by the iDEAL integration guide this only needs to be displayed if there are banks from more than one country on the Issuer list (which is currently not the case). |
