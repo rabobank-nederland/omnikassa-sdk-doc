@@ -92,7 +92,7 @@ If applicable, this document will display separate code examples for these platf
 In order to establish a HTTPS connection with Rabo OmniKassa, the Java Runtime environment, .NET environment or PHP (depending on the chosen SDK) 
 should be configured with a CA bundle so that the certificate of https://betalen.rabobank.nl can be validated. 
 Normally this is already the case and you do not need to do anything.  
-If you are running PHP under Windows, you may need to configure the php.ini to include the property openssl.cafile containing the path to the CA bundle. Consuflt the PHP documentation for more information.
+If you are running PHP under Windows, you may need to configure the php.ini to include the property openssl.cafile containing the path to the CA bundle. Consult the PHP documentation for more information.
 
 <a name="introduction"></a>
 ### Introduction
