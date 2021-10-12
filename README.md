@@ -3,7 +3,7 @@
 
 ##### _Developer’s manual version_
 
-Version: 1.15 April 2021
+Version: 1.16 October 2021
 
 Contact e-mail address: contact@omnikassa.rabobank.nl
 
@@ -15,6 +15,7 @@ Contact e-mail address: contact@omnikassa.rabobank.nl
 
 ### Table of contents
 
+- [Changelog](#changelog)
 - [Requirements and installation instructions](#requirements-and-installation-instructions)
   * [PHP SDK](#php-sdk)
   * [Java SDK](#java-sdk)
@@ -29,10 +30,21 @@ Contact e-mail address: contact@omnikassa.rabobank.nl
     + [Field description](#field-description)
   * [Creating endpoint](#creating-endpoint)
   * [Sending order](#sending-order)
-- [Consumer pays order](#consumer-pays-order)
+  * [Improve customer experience using payment brand parameters](#payment-brand-parameters)
+- [Customer pays order](#customer-pays-order)
 - [Receive updates about orders](#receive-updates-about-orders)
 - [Request available payment brands](#request-available-payment-brands)
+- [Request available iDEAL issuers](#request-available-ideal-issuers)
 
+<a name="changelog"></a>
+### Changelog
+
+#### Version 1.16
+* Added section on retrieval of iDEAL issuers.
+* Added section on improving customer experience using payment brand parameters.
+* Documented new property `fullName` of CustomerInformation.
+* Updated supported .NET versions.
+* Various minor corrections and improvements.
 
 <a name="requirements-and-installation-instructions"></a>
 ### Requirements and installation instructions
@@ -69,8 +81,9 @@ The jar files that this SDK depends on are in the Lib subdirectory. Both the SDK
 #### .NET SDK
 The .NET SDK supports the following .NET platforms:
 
--  .NET Framework (version 4.5.2 or higher)
--  .NET Core 1.x / 2.x / 3.x (version 1.3 or higher)
+- .NET Framework (version 4.5.2 or higher)
+- .NET Core 2.1 / 3.1
+- .NET 5.0
 
 If applicable, this document will display separate code examples for these platforms.
 
@@ -104,13 +117,13 @@ In the remaining chapters each of these steps is described in more detail.
 Each payment consists of the following three steps:
 
 1. **Order announcement**  
-Before the consumer can meet the payment request, the webshop first announces the order at Rabo OmniKassa. 
-The order will include all the information that Rabo OmniKassa needs to lead the consumer through the payment steps. 
+Before the customer can meet the payment request, the webshop first announces the order at Rabo OmniKassa. 
+The order will include all the information that Rabo OmniKassa needs to lead the customer through the payment steps. 
 In a successful order announcement Rabo OmniKassa returns a unique ID identifying the order and an URL that points to the payment pages. 
-2. **Consumer pays the order**  
-The webshop redirects the consumer to the URL that Rabo OmniKassa returned to in the step above. 
-The consumer is directed to Rabo OmniKassa payment pages and can fulfill the payment request. 
-When this is done, the consumer is redirected back to the webshop.
+2. **Customer pays the order**  
+The webshop redirects the customer to the URL that Rabo OmniKassa returned to in the step above. 
+The customer is directed to Rabo OmniKassa payment pages and can fulfill the payment request. 
+When this is done, the customer is redirected back to the webshop.
 3. **Receive Updates about orders**  
 In this step, Rabo OmniKassa sends a notification to the webhook URL of the webshop when one or more orders have been processed. 
 By using a unique token (key) in this notification, the webshop can request the final status of these orders from Rabo OmniKassa. 
@@ -124,7 +137,7 @@ The following chapters describe how these steps are implemented using the SDK.
 <a name="preparing-order"></a>
 ##### Preparing order
 In order to make a payment request, an order must first be prepared. The order contains all the information about the 
-payment request that Rabo OmniKassa needs in order to guide the consumer through the payment steps. 
+payment request that Rabo OmniKassa needs in order to guide the customer through the payment steps. 
 The following code blocks are examples for creating an order. The order is subject to requirements and if it does not meet certain criteria, 
 certain payment methods are not available, the order will be cleaned or rejected.
 
@@ -134,6 +147,7 @@ use nl\rabobank\gict\payments_savings\omnikassa_sdk\model\Money;
 use nl\rabobank\gict\payments_savings\omnikassa_sdk\model\OrderItem;
 use nl\rabobank\gict\payments_savings\omnikassa_sdk\model\PaymentBrand;
 use nl\rabobank\gict\payments_savings\omnikassa_sdk\model\PaymentBrandForce;
+use nl\rabobank\gict\payments_savings\omnikassa_sdk\model\PaymentBrandMetaData;
 use nl\rabobank\gict\payments_savings\omnikassa_sdk\model\ProductType;
 use nl\rabobank\gict\payments_savings\omnikassa_sdk\model\request\MerchantOrder;
 use nl\rabobank\gict\payments_savings\omnikassa_sdk\model\Address;
@@ -179,9 +193,10 @@ $customerInformation = CustomerInformation::createFrom([
     'dateOfBirth' => '20-03-1987',
     'gender' => 'M',
     'initials' => 'J.M.',
-    'telephoneNumber' => '0204971111'
+    'telephoneNumber' => '0204971111',
+    'fullName' => 'Jan van Veen'
 ]);
-
+        
 $order = MerchantOrder::createFrom([
     'merchantOrderId' => '100',
     'description' => 'Order ID: 100',
@@ -192,17 +207,21 @@ $order = MerchantOrder::createFrom([
     'customerInformation' => $customerInformation,
     'language' => 'NL',
     'merchantReturnURL' => 'http://localhost/',
+    'skipHppResultPage' => true,
     'paymentBrand' => PaymentBrand::IDEAL,
-    'paymentBrandForce' => PaymentBrandForce::FORCE_ONCE
+    'paymentBrandForce' => PaymentBrandForce::FORCE_ONCE,
+    'paymentBrandMetaData' => PaymentBrandMetaData::createFrom([
+        'issuerId' => 'RABONL2U',
+    ])
 ]);
 ```
 
 **Java** 
 ```java
+import java.util.Collections;
 import nl.rabobank.gict.payments_savings.omnikassa_frontend.sdk.model.*;
 import nl.rabobank.gict.payments_savings.omnikassa_frontend.sdk.model.order_details.*;
 import nl.rabobank.gict.payments_savings.omnikassa_frontend.sdk.model.enums.*;
-
 
 OrderItem orderItem = new OrderItem.Builder()
     .withId("1")
@@ -221,6 +240,7 @@ CustomerInformation customerInformation = new CustomerInformation.Builder()
     .withGender("M")
     .withEmailAddress("jan.van.veen@gmail.com")
     .withDateOfBirth("20-03-1987")
+    .withFullName("Jan van Veen")
     .build();
 
 Address shippingDetails = new Address.Builder()
@@ -257,8 +277,10 @@ MerchantOrder order = new MerchantOrder.Builder()
     .withBillingDetail(billingDetails)
     .withLanguage(Language.NL)
     .withMerchantReturnURL("http://localhost/")
+    .withSkipHppResultPage(true)
     .withPaymentBrand(PaymentBrand.IDEAL)
     .withPaymentBrandForce(PaymentBrandForce.FORCE_ONCE)
+    .withPaymentBrandMetaData(Collections.singletonMap("issuerId", "RABONL2U"))    
     .build();
 ```
 
@@ -286,6 +308,7 @@ CustomerInformation customerInformation = new CustomerInformation.Builder()
    .WithGender(Gender.M)
    .WithEmailAddress("jan.van.veen@gmail.com")
    .WithDateOfBirth("20-03-1987")
+   .WithFullName("Jan van Veen")
    .Build();
 
 Address shippingDetails = new Address.Builder()
@@ -311,6 +334,9 @@ Address shippingDetails = new Address.Builder()
    .WithCity("Haarlem")
    .WithCountryCode(CountryCode.NL)
    .Build();
+   
+Dictionary<string, string> paymentBrandMetaData = new Dictionary<string, string>();
+paymentBrandMetaData.Add("issuerId", "RABONL2U");
 
 MerchantOrder order = new MerchantOrder.Builder()
    .WithMerchantOrderId("ORDID123")
@@ -322,8 +348,10 @@ MerchantOrder order = new MerchantOrder.Builder()
    .WithBillingDetail(billingDetails)
    .WithLanguage(Language.NL)
    .WithMerchantReturnURL("http://localhost/")
+   .WithSkipHppResultPage(true)
    .WithPaymentBrand(PaymentBrand.IDEAL)
    .WithPaymentBrandForce(PaymentBrandForce.FORCE_ALWAYS)
+   .WithPaymentBrandMetaData(paymentBrandMetaData)
    .Build();
 ```
 
@@ -333,45 +361,46 @@ Below are all the fields with the name, a description, and the rules to which th
 
 **MerchantOrder**
 
-| Field                 | Description                                                                          | Rules                                                                                                                                                                                                                                                                                              |
-|---------------------- | ------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `merchantOrderId`     | The identity of the order                                                            | Required                                                                                                                                                                                                                                                                                           |
-|                       |                                                                                      | May consist only of alphanumeric characters                                                                                                                                                                                                                                                        |
-|                       |                                                                                      | This field is shortened to a maximum of 24 characters.                                                                                                                                                                                                                                             |
-|                       |                                                                                      | For AfterPay, this field must be unique                                                                                                                                                                                                                                                            |
-| `description`         | A description of the order                                                           | Optional                                                                                                                                                                                                                                                                                           |
-|                       |                                                                                      | This field is shortened to a maximum of 35 characters.                                                                                                                                                                                                                                             |
-| `orderItems`          | All items that will be ordered by the consumer                                       | Optional                                                                                                                                                                                                                                                                                           |
-|                       |                                                                                      | A maximum of 99 items may be supplied                                                                                                                                                                                                                                                              |
-| `amount`              | The total order amount in cents, including VAT                                       | Required                                                                                                                                                                                                                                                                                           |
-|                       |                                                                                      | The amount must not exceed 99,999.99                                                                                                                                                                                                                                                               |
-|                       |                                                                                      | The amount must be equal to the sum of all order items of the piece price (including VAT) multiplied by the number of copies.                                                                                                                                                                      |
-|                       |                                                                                      | Due to the way VAT is calculated, rounding differences can prevent them from being equal.                                                                                                                                                                                                          |
-|                       |                                                                                      | We therefore recommend that you base the total VAT amount on the VAT of the item price instead of the total order amount excluding VAT.                                                                                                                                                            |
-|                       |                                                                                      | For example: Suppose the price of an order item (excluding VAT) is €12.98 and a vat rate of 21% is used. When a consumer order 7 copies, the price including VAT €12.98 + 21% = €15.71 is completed. The total order amount (including VAT) that is given in this field is 7 x €15.71 = €109.97.   |
-|                       |                                                                                      | **Note** If the amount is not equal to the sum of the amounts of the order items then                                                                                                                                                                                                              |
-|                       |                                                                                      | 1. The order items are filtered from the order announcement, and                                                                                                                                                                                                                                   |
-|                       |                                                                                      | 2. AfterPay is not possible as a payment method                                                                                                                                                                                                                                                    |
-| `shippingDetails`     | The delivery address of this order                                                   | Optional                                                                                                                                                                                                                                                                                           |
-| `language`            | The texts on the payment pages will be in this language                              | Optional, standard we use en.                                                                                                                                                                                                                                                                      |
-|                       |                                                                                      | ISO 3166-1 Alpha-2, limited to NL, EN, FR and DE.                                                                                                                                                                                                                                                  |
-|                       |                                                                                      | If an unknown value is used: then EN will be used.                                                                                                                                                                                                                                                 |
-| `merchantReturnURL`   | The URL the consumer will return to after the payment steps have been completed      | Required                                                                                                                                                                                                                                                                                           |
-|                       |                                                                                      | Must be a valid URL                                                                                                                                                                                                                                                                                |
-| `paymentBrand`        | The payment method to which the consumer is limited                                  | Optional                                                                                                                                                                                                                                                                                           |
-|                       |                                                                                      | Must be one of the following values: IDEAL, AFTERPAY, PAYPAL, MasterCard, VISA, BANCONTACT, MAESTRO, V_PAY                                                                                                                                                                                         |
-|                       |                                                                                      | When value is CARDS, then all card payment methods are offered (MasterCard, Visa, Bancontact, Maestro, and V PAY)                                                                                                                                                                                  |
-| `paymentBrandForce`   | Is used to enforce the payment method                                                | optional                                                                                                                                                                                                                                                                                           |
-|                       |                                                                                      | Must be one of the following values: FORCE_ONCE or FORCE_ALWAYS                                                                                                                                                                                                                                    |
-| `customerInformation` | A limited set of consumer information                                                | Optional                                                                                                                                                                                                                                                                                           |
-| `billingDetails`      | The billing address of this order                                                    | Optional                                                                                                                                                                                                                                                                                           |
-| `initiatingParty`     | An ID identifying the party from which the order announcement was initiated          | Optional. This field must be left empty unless agreed otherwise with Rabobank                                                                                                                                                                                                                      |
-    
-The payment method and the force options work as follows. When the payment method is _iDEAL_ and the Force option _FORCE_ONCE_ has been selected, 
-then this means that the consumer will immediately start an _iDEAL_ payment upon arrival at Rabobank OmniKassa and thus arrives on the bank selecting screen. 
-The customer then has the option to finalize the payment or to choose another payment method by clicking on `<Choose Other Payment method>`. 
-With the _FORCE_ALWAYS_ it is not possible for the consumer to choose another payment method. The only options are to approve or cancel the payment request.
+| Field                  | Description                                                                                                           | Rules                                                                                                                                                                                                                                                                                              |
+|----------------------- | --------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `merchantOrderId`      | The identity of the order                                                                                             | Required                                                                                                                                                                                                                                                                                           |
+|                        |                                                                                                                       | May consist only of alphanumeric characters                                                                                                                                                                                                                                                        |
+|                        |                                                                                                                       | This field is shortened to a maximum of 24 characters.                                                                                                                                                                                                                                             |
+|                        |                                                                                                                       | For AfterPay, this field must be unique                                                                                                                                                                                                                                                            |
+| `description`          | A description of the order                                                                                            | Optional                                                                                                                                                                                                                                                                                           |
+|                        |                                                                                                                       | This field is shortened to a maximum of 35 characters.                                                                                                                                                                                                                                             |
+| `orderItems`           | All items that will be ordered by the customer                                                                        | Optional                                                                                                                                                                                                                                                                                           |
+|                        |                                                                                                                       | A maximum of 99 items may be supplied                                                                                                                                                                                                                                                              |
+| `amount`               | The total order amount in cents, including VAT                                                                        | Required                                                                                                                                                                                                                                                                                           |
+|                        |                                                                                                                       | The amount must not exceed 99,999.99                                                                                                                                                                                                                                                               |
+|                        |                                                                                                                       | The amount must be equal to the sum of all order items of the piece price (including VAT) multiplied by the number of copies.                                                                                                                                                                      |
+|                        |                                                                                                                       | Due to the way VAT is calculated, rounding differences can prevent them from being equal.                                                                                                                                                                                                          |
+|                        |                                                                                                                       | We therefore recommend that you base the total VAT amount on the VAT of the item price instead of the total order amount excluding VAT.                                                                                                                                                            |
+|                        |                                                                                                                       | For example: Suppose the price of an order item (excluding VAT) is €12.98 and a vat rate of 21% is used. When a customer order 7 copies, the price including VAT €12.98 + 21% = €15.71 is completed. The total order amount (including VAT) that is given in this field is 7 x €15.71 = €109.97.   |
+|                        |                                                                                                                       | **Note** If the amount is not equal to the sum of the amounts of the order items then                                                                                                                                                                                                              |
+|                        |                                                                                                                       | 1. The order items are filtered from the order announcement, and                                                                                                                                                                                                                                   |
+|                        |                                                                                                                       | 2. AfterPay is not possible as a payment method                                                                                                                                                                                                                                                    |
+| `shippingDetails`      | The delivery address of this order                                                                                    | Optional                                                                                                                                                                                                                                                                                           |
+| `language`             | The texts on the payment pages will be in this language                                                               | Optional, the default value is EN.                                                                                                                                                                                                                                                                 |
+|                        |                                                                                                                       | ISO 3166-1 Alpha-2, limited to NL, EN, FR and DE.                                                                                                                                                                                                                                                  |
+|                        |                                                                                                                       | If an unknown value is used: then EN will be used.                                                                                                                                                                                                                                                 |
+| `merchantReturnURL`    | The URL the customer will return to after the payment steps have been completed                                       | Required                                                                                                                                                                                                                                                                                           |
+|                        |                                                                                                                       | Must be a valid URL                                                                                                                                                                                                                                                                                |
+| `paymentBrand`         | The payment method to which the customer is limited                                                                   | Optional                                                                                                                                                                                                                                                                                           |
+|                        |                                                                                                                       | Must be one of the following values: IDEAL, AFTERPAY, PAYPAL, MasterCard, VISA, BANCONTACT, MAESTRO, V_PAY                                                                                                                                                                                         |
+|                        |                                                                                                                       | When value is CARDS, then all card payment methods are offered (MasterCard, Visa, Bancontact, Maestro, and V PAY)                                                                                                                                                                                  |
+| `paymentBrandForce`    | Is used to enforce the payment method                                                                                 | Optional, if the field `paymentBrand` is supplied then this field is required.                                                                                                                                                                                                                     |                                                                      |
+|                        |                                                                                                                       | Must be one of the following values: FORCE_ONCE or FORCE_ALWAYS                                                                                                                                                                                                                                    |
+| `paymentBrandMetaData` | Additional parameters specific to the supplied payment method                                                         | Optional, when this field is supplied then the fields `paymentBrand` and `paymentBrandForce` must be set as well.                                                                                                                                                                                  |
+|                        |                                                                                                                       | The value of this field is a key-value map of strings.                                                                                                                                                                                                                                             |
+| `customerInformation`  | A limited set of customer information                                                                                 | Optional                                                                                                                                                                                                                                                                                           |
+| `billingDetails`       | The billing address of this order                                                                                     | Optional                                                                                                                                                                                                                                                                                           |
+| `initiatingParty`      | An ID identifying the party from which the order announcement was initiated                                           | Optional. This field must be left empty unless agreed otherwise with Rabobank                                                                                                                                                                                                                      |
+| `skipHppResultPage`    | Use this field to skip the hosted result page (also referred to as the success/thank you page) in the payment process | Optional
 
+For more information on how to use the `paymentBrand`, `paymentBrandForce`, `paymentBrandMetaData` and the
+`skipHppResultPage` please consult
+[Improve customer experience using payment brand parameters](#payment-brand-parameters).
 
 **Money**
 
@@ -420,11 +449,11 @@ Money moneyFromDecimal = Money.FromEuros(Currency.EUR, 1.75m);
 
 | Field                  | Description                          | Rules                                                                                                                   |
 |----------------------- | ----------------------------------   | ------------------------------------------------------------------------------------------------------------------------|
-| `firstName`            | Consumer's name                      | Required                                                                                                                |
+| `firstName`            | customer's name                      | Required                                                                                                                |
 |                        |                                      | Has a maximum length of 50 Characters                                                                                   |
-| `middleName`           | Consumer's middle name               | Optional                                                                                                                |
+| `middleName`           | customer's middle name               | Optional                                                                                                                |
 |                        |                                      | Has a maximum length of 20 Characters                                                                                   |
-| `lastName`             | Last name of the consumer            | Required                                                                                                                |
+| `lastName`             | Last name of the customer            | Required                                                                                                                |
 |                        |                                      | Has a maximum length of 50 Characters                                                                                   |
 | `street`               | Street name of the address           | Required                                                                                                                |
 |                        |                                      | Has a maximum length of 100 Characters.                                                                                 |
@@ -461,23 +490,26 @@ The supported ZIP code formats are as follows. The remaining country codes only 
 
 **CustomerInformation**
 
-| Field             | Description                            | Rules                                            |
-|------------------ | -------------------------------------- | -------------------------------------------------|
-| `emailAddress`    | The email address of the consumer      | Optional                                         |
-|                   |                                        | Must be a valid email address                    |
-|                   |                                        | Has a maximum length of 45 characters.           |
-| `dateOfBirth`     | The date of birth of the consumer      | Optional                                         |
-|                   |                                        | Must be in the format: DD-MM-YYYY                |
-| `gender`          | Consumer Sex                           | Optional                                         |
-|                   |                                        | Must be one of the following values: M, F        |
-| `initials`        | Consumer Initials                      | Optional                                         |
-|                   |                                        | May consist only of alphabet characters          |
-|                   |                                        | Has a maximum length of 256 characters.          |
-| `telephoneNumber` | The telephone number of the consumer   | Optional                                         |
-|                   |                                        | May consist of numbers and alphabet characters   |
-|                   |                                        | Has a maximum length of 31 characters.           |
+| Field             | Description                            | Rules                                                                   |
+|------------------ | -------------------------------------- | ------------------------------------------------------------------------|
+| `emailAddress`    | The email address of the customer      | Optional                                                                |
+|                   |                                        | Must be a valid email address                                           |
+|                   |                                        | Has a maximum length of 45 characters.                                  |
+| `dateOfBirth`     | The date of birth of the customer      | Optional                                                                |
+|                   |                                        | Must be in the format: DD-MM-YYYY                                       |
+| `gender`          | customer Sex                           | Optional                                                                |
+|                   |                                        | Must be one of the following values: M, F                               |
+| `initials`        | customer Initials                      | Optional                                                                |
+|                   |                                        | May consist only of alphabet characters                                 |
+|                   |                                        | Has a maximum length of 256 characters.                                 |
+| `telephoneNumber` | The telephone number of the customer   | Optional                                                                |
+|                   |                                        | May consist of numbers and alphabet characters                          |
+|                   |                                        | Has a maximum length of 31 characters.                                  |
+| `fullName`        | The full name of the customer          | Optional                                                                |
+|                   |                                        | Has a maximum length of 128 characters.                                 |
+|                   |                                        | Consult [this section](#customer-name-dashboard) for more information.  |
 
-For the payment method _AfterPay_, Rabo OmniKassa shows a page to the consumer in which he can complete or modify the above fields after the order announcement. 
+For the payment method _AfterPay_, Rabo OmniKassa shows a page to the customer in which he can complete or modify the above fields after the order announcement. 
 Your webshop will **not** be informed of the details that are filled in during this process.
 
 **OrderItem**
@@ -507,8 +539,9 @@ Your webshop will **not** be informed of the details that are filled in during t
 |               |                                                | 3 = zero (0%)                                                      |
 |               |                                                | 4 = none (exempt from VAT)                                         |
 
-The quantity describes how much the consumer wants to have the of a particular product, for example 2 apples, or 3 pears. 
-The amount indicates how much one product costs, so 1 apple costs €1.50, or 1 pear costs €1.75, and includes VAT.
+The quantity describes how much the customer wants to have the of a particular product, for example 2 apples,
+or 3 pears. The amount indicates how much one product costs, so 1 apple costs €1.50, or 1 pear costs €1.75, and
+includes VAT.
 
 If we detail the examples then it becomes:
 
@@ -698,7 +731,7 @@ The table below shows what data this is, broken down by payment method:
 |                  | In addition, AfterPay requires that the MerchantOrderId field to be unique.                                                                                                                           |
 |                  | The order amount must be at least 5 euro.                                                                                                                                                             |
 
-If for a payment method the mandatory additional information is missing in the order then the consumer cannot use this method to fulfill the payment. 
+If for a payment method the mandatory additional information is missing in the order then the customer cannot use this method to fulfill the payment. 
 If the payment method was included in the order using the PaymentBrand field, the announcement will be refused by Rabo OmniKassa.
 
 <a name="creating-endpoint"></a>
@@ -710,7 +743,7 @@ The URL determines whether the production environment or the sandbox environment
 
 | Environment   | Description                                                                                                                                                              |
 |-------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Production    | In this environment actual payments are done that are depreciated from the consumer's account and transferred to the owner of the webshop.                               |
+| Production    | In this environment actual payments are done that are depreciated from the customer's account and transferred to the owner of the webshop.                               |
 | Sandbox       | This is a test environment. Payments in this environment are simulated and are only intended to test the connections with your webshop.                                  |
 
 The environments can be configured in Rabo OmniKassa Dashboard - for example, which payment methods should be offered.
@@ -869,7 +902,7 @@ To link to the sandbox environment, the constant `Environment.SANDBOX` must be u
 
 <a name="sending-order"></a>
 #### Sending order
-With this `Endpoint` we can announce the order. As a response to the order announcement Rabo OmniKassa returns a unique ID to identify the order as well as a URL to the payment pages. The consumer must be redirected to this URL in order to pay for the order.
+With this `Endpoint` we can announce the order. As a response to the order announcement Rabo OmniKassa returns a unique ID to identify the order as well as a URL to the payment pages. The customer must be redirected to this URL in order to pay for the order.
 
 **PHP**
 ```php
@@ -886,7 +919,7 @@ MerchantOrderResponse response = endpoint.announce(order);
 return "redirect:" + response.getRedirectUrl();
 ```
 
-**.NET Standard 1.3**
+**.NET Standard**
 ```csharp
 using Microsoft.AspNetCore.Mvc;
 
@@ -908,13 +941,71 @@ The object of type `MerchantOrderResponse` as returned by the Java SDK contains 
 
 | Field            | Description                                                                                                                                                                                    |
 |------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| redirectUrl      | The URL to which the consumer must be redirected to in order to pay for the order.                                                                                                             |
+| redirectUrl      | The URL to which the customer must be redirected to in order to pay for the order.                                                                                                             |
 | omnikassaOrderId | A unique ID that Rabo OmniKassa will assign to the order. This ID is needed to link the payment result as returned by the webhook notification mechanism to the correct order (see [Receive updates about orders](#receive-updates-about-orders)). |
 
-<a name="consumer-pays-order"></a>
-### Consumer pays order
 
-When redirected to the payment pages of Rabo Omnikassa the consumer can pay the order. When this is done, the consumer is automatically redirected back to the webshop via the `merchantReturnUrl` specified in the order announcement. 
+<a name="payment-brand-parameters"></a>
+#### Improve customer experience using payment brand parameters
+The default behavior for an online payment is to redirect the customer to the payment pages of Rabo OmniKassa after the 
+order has been announced. These are Rabobank-branded pages hosted by Rabo OmniKassa and they guide the customer through 
+the payment process by presenting a list of payment brands and to ask the customer for additional details, depending on
+the selected payment brand. For an improved online payment experience Rabo OmniKassa provides means to skip some of
+these steps by letting the webshop supply payment brand information. For example, in the checkout process the webshop
+can already provide an option for the customer to select iDEAL as a payment brand as well as the bank. In this section 
+we describe how the SDK facilitates this improved experience.
+
+The first improvement is to allow the customer to select the payment brand in the webshop. For this the SDK provides
+functionality to retrieve the payment brands that are currently configured and active within Rabo OmniKassa for the web 
+shop. For a technical description on how to obtain the brands see
+[Request available payment brands](#request-available-payment-brands). The returned payment brand information can then
+be used for example to populate a select box in the webshop.
+
+Once the customer has selected a payment brand, the webshop needs to supply two additional fields in the order
+announcement:
+
+1. The `paymentBrand` field must contain the name of the selected payment brand, for example `IDEAL`.
+2. The `paymentBrandForce` field must specify whether the customer can select an alternative payment in the hosted
+   payment pages.
+
+We explain the payment method and the force options in more detail. When the payment method is `IDEAL` and the Force 
+option `FORCE_ONCE` has been specified, then the customer will immediately start an iDEAL payment upon arrival at 
+Rabo OmniKassa and thus arrives on the bank selecting screen. The customer then has the option to finalize the payment 
+or to choose another payment method by clicking on `<Choose Other Payment method>`. With the `FORCE_ALWAYS` it is not
+possible for the customer to choose another payment method. The only options are to approve or cancel the payment after 
+selecting the bank.
+
+The second improvement applies only to iDEAL and allows the customer to also select his or her bank in the webshop. For
+this the SDK provides functionality to retrieve the list of participating banks. For a technical description on how to 
+obtain this list please consult [Request available iDEAL issuers](#request-available-ideal-issuers). The returned list 
+of banks can then be used to populate another select box in the webshop that becomes visible after the customer has
+selected iDEAL as payment brand.
+
+Once the bank has been selected the webshop needs to include the ID of the bank in the `paymentBrandMetaData` field in 
+addition to the above-mentioned `paymentBrand` the `paymentBrandForce` fields. The `paymentBrandMetaData` field is a 
+key-value map. To specify the bank include an entry in this map with key 'issuerId' and as value the ID of the bank as 
+specified in the issuer list, for example 'RABONL2U'.
+
+By implementing these 2 improvements in the webshop the customer will be immediately redirected to the iDEAL page of 
+the selected bank after announcing the order to authorize the transaction.
+
+A final optimization can be achieved by setting the `skipHppResultPage` field in the order announcement to `true`. After
+authorizing the transaction in the iDEAL page of the selected bank, the customer will be immediately redirected back to
+the webshop. The success page (also referred to as the “Thank You” page) of the hosted payment pages will be skipped in
+this case.
+
+<a name="customer-name-dashboard"></a>
+### How to expose the name of the customer in Omni Dashboard
+In this section we specify how to include the name of the customer in the order information such that it will be visible
+in the Omni Dashboard. There are two ways on how to achieve this.
+
+1. The first and preferred approach is to specify the field `fullName` of the `CustomerInformation` structure.
+2. If this field is not set then OmniKassa will use the name as specified in the shipping details (if included) or billing details (if included), where the shipping details will take precedence.
+
+<a name="customer-pays-order"></a>
+### Customer pays order
+
+When redirected to the payment pages of Rabo Omnikassa the customer can pay the order. When this is done, the customer is automatically redirected back to the webshop via the `merchantReturnUrl` specified in the order announcement. 
 With this `URL` some query parameters will be included that relate to the order, namely: 
 
 | Parameter   | Description                                                                     |
@@ -969,7 +1060,7 @@ void paymentCompleted(HttpServletRequest request) {
 }
 ``` 
 
-**.NET Standard 1.3**
+**.NET Standard**
 ```csharp
 using System.Collections.Generic;
 using Microsoft.Extensions.Primitives;
@@ -997,7 +1088,7 @@ String validatedOrderId = paymentCompletedResponse.OrderId;
 PaymentStatus validatedStatus = paymentCompletedResponse.Status;
 ```
 
-If the answer is invalid, it is advisable to redirect the consumer to an error page but to consider the order as `open`. 
+If the answer is invalid, it is advisable to redirect the customer to an error page but to consider the order as `open`. 
 At a later stage, the actual status of the order can be requested by means of notifications.
 
 <a name="receive-updates-about-orders"></a>
@@ -1062,7 +1153,7 @@ ResponseEntity webhook(@RequestBody ApiNotification apiNotification) throws Rabo
 }
 ```
 
-**.NET Standard 1.3**
+**.NET Standard**
 ```csharp
 using Microsoft.AspNetCore.Mvc;
 using OmniKassa.Model.Response;
@@ -1129,22 +1220,24 @@ As shown above, an object of type `MerchantOrderResult` contains the data of a s
 | `omniKassaOrderId`    | The unique ID assigned by OmniKassa to the order at the time of the announcement.                                                                                                                      |
 | `poiId`               | The unique ID that identifies the webshop.                                                                                                                                                             |
 | `orderStatus`         | The status of the order. The following values are possible:                                                                                                                                            |
-|                       | COMPLETED: The full amount of the order is paid by the consumer.                                                                                                                                       |
-|                       | CANCELLED: The order was canceled by the consumer.                                                                                                                                                     |
-|                       | EXPIRED: The order has expired without the consumer having paid.                                                                                                                                       |
+|                       | COMPLETED: The full amount of the order is paid by the customer.                                                                                                                                       |
+|                       | CANCELLED: The order was canceled by the customer.                                                                                                                                                     |
+|                       | EXPIRED: The order has expired without the customer having paid.                                                                                                                                       |
 | `orderStatusDateTime` | The most recent timestamp of the order.                                                                                                                                                                |
 |                       | If there was no payment attempt, this field will contain the time the order was announced at OmniKassa.                                                                                                |
 |                       | Otherwise, this field contains the time of the most recent payment attempt.                                                                                                                            |
 | `errorCode`           | This field is reserved for future use. Currently, this field does not contain a value.                                                                                                                 |
-| `paidAmount`          | The amount paid by the consumer. In case of COMPLETED, it is equal to the order amount as given by the webshop at the announcement. When CANCELLED and EXPIRED, this field will have a value of 0.   |
+| `paidAmount`          | The amount paid by the customer. In case of COMPLETED, it is equal to the order amount as given by the webshop at the announcement. When CANCELLED and EXPIRED, this field will have a value of 0.   |
 | `totalAmount`         | The original order amount as specified by the webshop when announcing the order.                                                                                                                       |
 
 <a name="request-available-payment-brands"></a>
 ### Request available payment brands
 
 The SDK also provides functionality to look up all payment brands of a webshop as configured in the dashboard of Rabo OmniKassa. 
-This information can be used to determine which payment brands are available to the consumer. 
+This information can be used to determine which payment brands are available to the customer. 
 It is typically used in conjunction with the `paymentBrand` and `paymentBrandForce` fields of an order announcement ([Order announcement](#order-announcement)).
+
+**Important:** The payment brands should not be requested real-time for each payment, but instead be cached locally and updated at certain time intervals (e.g. every few hours).
 
 Given an `Endpoint` ([Creating endpoint](#creating-endpoint)) we can look up the payment brands as followings.
 
@@ -1166,9 +1259,9 @@ foreach($paymentBrands as $paymentBrand) {
 **Java**
 ```java
 import nl.rabobank.gict.payments_savings.omnikassa_frontend.sdk.model.response.PaymentBrandsResponse;
-import nl.rabobank.gict.payments_savings.omnikassa_frontend.sdk.model.respones.PaymentBrandInfo;
+import nl.rabobank.gict.payments_savings.omnikassa_frontend.sdk.model.response.PaymentBrandInfo;
 
-PaymentBrandsReponse response = endpoint.retrievePaymentBrands();
+PaymentBrandsResponse response = endpoint.retrievePaymentBrands();
 for (PaymentBrandInfo paymentBrand : response.getPaymentBrands()) {
   String name = paymentBrand.getName();
   PaymentBrandStatus status = paymentBrand.getStatus();
@@ -1208,3 +1301,66 @@ Each element of this list is an object of type `PaymentBrandInfo` containing the
 | `active` | A boolean indicating if the payment brand is active (true) or inactive (false).                                             |
 
 Only the payment brands that are returned in this list and are active can be used for payments. 
+
+<a name="request-available-ideal-issuers"></a>
+### Request available iDEAL issuers
+In this section we explain how to obtain the iDEAL issuers. This functionality is typically used to directly start an 
+iDEAL transaction from the webshop without first redirecting the customer to the payment pages of Rabo OmniKassa to
+select iDEAL as the payment brand and then the issuer.
+
+**Important:** The list of iDEAL issuers should not be requested real-time for each payment, but instead be cached 
+locally and updated daily.
+
+Given an `Endpoint` ([Creating endpoint](#creating-endpoint)) we can obtain this list as follows.
+
+**PHP**
+```php
+use nl\rabobank\gict\payments_savings\omnikassa_sdk\model\response\IdealIssuersResponse;
+use nl\rabobank\gict\payments_savings\omnikassa_sdk\model\response\IdealIssuersInfo;
+
+$response = $endpoint->retrieveIDEALIssuers();
+$issuers = $response->getIssuers();
+foreach($issuer as $issuers) {
+  // use the properties in the issuer variable for further processing
+}
+```
+
+**Java**
+```java
+import nl.rabobank.gict.payments_savings.omnikassa_frontend.sdk.model.response.IdealIssuersResponse;
+import nl.rabobank.gict.payments_savings.omnikassa_frontend.sdk.model.response.IdealIssuer;
+
+IdealIssuersResponse response = endpoint.retrieveIdealIssuers();
+for (IdealIssuer issuer : response.getIssuers()) {
+  // use the properties in the issuer variable for further processing
+}
+```
+
+**.NET**
+```csharp
+using OmniKassa.Model.Response;
+
+IdealIssuersResponse response = endpoint.RetrieveIdealIssuers();
+foreach(IdealIssuer issuer in response.IdealIssuers)
+{
+  // use the properties in the issuer variable for further processing
+}
+```
+
+As shown above the `retrieveIdealIssers()` method of the Endpoint class returns an instance of `IdealIssuersResponse`.
+This class provides a method `getIssuers()` that returns a list of all available iDEAL issuers.
+Each element of this list is an object containing the details of a single iDEAL issuer as shown in the following table.
+
+| Field          | Description                                                                                                                                                                                                                                                                      |
+|--------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `id`           | A string of at most 11 characters containing the unique ID of the iDEAL issuer. This ID must be used in the `paymentBrandMetaData` field of an order to immediately start an iDEAL transaction for this issuer.                                                                  |
+| `name`         | The name of the Issuer as should be presented to the customer when rendering the list of iDEAL issuers. This field is a string of at most 35 characters.                                                                                                                         |
+| `logos`        | A list of objects containing logo details of the issuer. This information can be used to render the logo of the issuer in the webshop. See table below for more details on the logo properties.                                                                                  |
+| `countryNames` | Contains the country names in the official languages of the country, separated by a '/' symbol. As prescribed by the iDEAL integration guide this only needs to be displayed if there are banks from more than one country on the Issuer list (which is currently not the case). |
+
+The table below contains the properties of an iDEAL issuer logo. 
+
+| Field      | Description                                                                                |
+|----------- | -------------------------------------------------------------------------------------------|
+| `url`      | A publicly accessible URL where you can download the logo of the issuer.                   |
+| `mimeType` | The mime type (also referred to as the media type) of the logo. This always an image type. |
