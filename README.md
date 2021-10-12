@@ -120,7 +120,7 @@ Each payment consists of the following three steps:
 Before the customer can meet the payment request, the webshop first announces the order at Rabo OmniKassa. 
 The order will include all the information that Rabo OmniKassa needs to lead the customer through the payment steps. 
 In a successful order announcement Rabo OmniKassa returns a unique ID identifying the order and an URL that points to the payment pages. 
-2. **customer pays the order**  
+2. **Customer pays the order**  
 The webshop redirects the customer to the URL that Rabo OmniKassa returned to in the step above. 
 The customer is directed to Rabo OmniKassa payment pages and can fulfill the payment request. 
 When this is done, the customer is redirected back to the webshop.
