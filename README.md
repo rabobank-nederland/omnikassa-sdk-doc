@@ -7,7 +7,7 @@ Version: 1.17 January 2022
 
 Contact e-mail address: contact@omnikassa.rabobank.nl
 
-> © Rabobank, 2021
+> © Rabobank, 2022
 
 > No part of this publication may be reproduced in any form by print, photo print, microfilm or any other means without written permission by Rabobank.
 
