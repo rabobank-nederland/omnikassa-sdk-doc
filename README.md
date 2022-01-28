@@ -3,7 +3,7 @@
 
 ##### _Developer’s manual version_
 
-Version: 1.16 October 2021
+Version: 1.17 January 2022
 
 Contact e-mail address: contact@omnikassa.rabobank.nl
 
@@ -39,6 +39,9 @@ Contact e-mail address: contact@omnikassa.rabobank.nl
 <a name="changelog"></a>
 ### Changelog
 
+#### Version 1.17
+* Added support for Java 17.
+
 #### Version 1.16
 * Added section on retrieval of iDEAL issuers.
 * Added section on improving customer experience using payment brand parameters.
@@ -73,7 +76,7 @@ require __DIR__ . '/vendor/autoload.php';
 
 <a name="java-sdk"></a>     
 #### Java SDK
-If you are using the Java SDK, you should have Java Runtime Environment version 1.8 or 11 available.  
+If you are using the Java SDK, you should have Java Runtime Environment version 1.8, 11 or 17 available.  
 To use the Java SDK, extract the ZIP file to the system on which the webshop is installed. The actual SDK is a single jar and is located in the SDK subdirectory. 
 The jar files that this SDK depends on are in the Lib subdirectory. Both the SDK jar file and the dependent jar files should be included in the classpath to be able to use the Java SDK.
 
