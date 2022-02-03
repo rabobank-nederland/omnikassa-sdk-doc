@@ -69,15 +69,15 @@ Next run the Composer update command from the terminal:
     composer update
 
 Then include the composer-generated autoloader.php file in your code using:
-     
+
 ```php
 require __DIR__ . '/vendor/autoload.php';
 ```
 
-<a name="java-sdk"></a>     
+<a name="java-sdk"></a>
 #### Java SDK
-If you are using the Java SDK, you should have Java Runtime Environment version 1.8, 11 or 17 available.  
-To use the Java SDK, extract the ZIP file to the system on which the webshop is installed. The actual SDK is a single jar and is located in the SDK subdirectory. 
+If you are using the Java SDK, you should have Java Runtime Environment version 1.8, 11 or 17 available.
+To use the Java SDK, extract the ZIP file to the system on which the webshop is installed. The actual SDK is a single jar and is located in the SDK subdirectory.
 The jar files that this SDK depends on are in the Lib subdirectory. Both the SDK jar file and the dependent jar files should be included in the classpath to be able to use the Java SDK.
 
 <a name="net-sdk"></a>
@@ -92,9 +92,9 @@ If applicable, this document will display separate code examples for these platf
 
 <a name="ssl-configuration"></a>
 #### SSL configuration
-In order to establish a HTTPS connection with Rabo OmniKassa, the Java Runtime environment, .NET environment or PHP (depending on the chosen SDK) 
-should be configured with a CA bundle so that the certificate of https://betalen.rabobank.nl can be validated. 
-Normally this is already the case and you do not need to do anything.  
+In order to establish a HTTPS connection with Rabo OmniKassa, the Java Runtime environment, .NET environment or PHP (depending on the chosen SDK)
+should be configured with a CA bundle so that the certificate of https://betalen.rabobank.nl can be validated.
+Normally this is already the case and you do not need to do anything.
 If you are running PHP under Windows, you may need to configure the php.ini to include the property openssl.cafile containing the path to the CA bundle. Consult the PHP documentation for more information.
 
 <a name="introduction"></a>
@@ -102,34 +102,34 @@ If you are running PHP under Windows, you may need to configure the php.ini to i
 
 <a name="purpose"></a>
 #### Purpose
-This document describes how a webshop can be connected to Rabo OmniKassa using the available SDKs. 
+This document describes how a webshop can be connected to Rabo OmniKassa using the available SDKs.
 At this moment Rabobank SDKs provides the following programming languages/platforms: PHP, Java and .NET.
-It is possible that this manual already includes functionality that belongs to a payment method that is not yet available in the Rabo OmniKassa dashboard, 
+It is possible that this manual already includes functionality that belongs to a payment method that is not yet available in the Rabo OmniKassa dashboard,
 this is not a problem for the proper operation of the SDK. In the Rabo OmniKassa Dashboard, the available payment methods can be selected.
 
 <a name="signing-keys-and-refresh-tokens"></a>
 #### Signing keys and refresh tokens
-In the code, the identifiers {refresh_token} and {signing_key} refer to the refresh token and the signing key respectively. 
+In the code, the identifiers {refresh_token} and {signing_key} refer to the refresh token and the signing key respectively.
 These indications should not be taken literally but replaced with the values you find in the dashboard of Rabo OmniKassa 2.0.
 
 <a name="steps-in-processing-payments"></a>
-### Steps in processing payments 
-In order to obtain a global picture, this chapter describes the steps in which a payment is made via Rabo OmniKassa. 
+### Steps in processing payments
+In order to obtain a global picture, this chapter describes the steps in which a payment is made via Rabo OmniKassa.
 In the remaining chapters each of these steps is described in more detail.
 
 Each payment consists of the following three steps:
 
-1. **Order announcement**  
-Before the customer can meet the payment request, the webshop first announces the order at Rabo OmniKassa. 
-The order will include all the information that Rabo OmniKassa needs to lead the customer through the payment steps. 
-In a successful order announcement Rabo OmniKassa returns a unique ID identifying the order and an URL that points to the payment pages. 
-2. **Customer pays the order**  
-The webshop redirects the customer to the URL that Rabo OmniKassa returned to in the step above. 
-The customer is directed to Rabo OmniKassa payment pages and can fulfill the payment request. 
+1. **Order announcement**
+Before the customer can meet the payment request, the webshop first announces the order at Rabo OmniKassa.
+The order will include all the information that Rabo OmniKassa needs to lead the customer through the payment steps.
+In a successful order announcement Rabo OmniKassa returns a unique ID identifying the order and an URL that points to the payment pages.
+2. **Customer pays the order**
+The webshop redirects the customer to the URL that Rabo OmniKassa returned to in the step above.
+The customer is directed to Rabo OmniKassa payment pages and can fulfill the payment request.
 When this is done, the customer is redirected back to the webshop.
-3. **Receive Updates about orders**  
-In this step, Rabo OmniKassa sends a notification to the webhook URL of the webshop when one or more orders have been processed. 
-By using a unique token (key) in this notification, the webshop can request the final status of these orders from Rabo OmniKassa. 
+3. **Receive Updates about orders**
+In this step, Rabo OmniKassa sends a notification to the webhook URL of the webshop when one or more orders have been processed.
+By using a unique token (key) in this notification, the webshop can request the final status of these orders from Rabo OmniKassa.
 This step is optional and will only run if the webhook URL is configured in the Rabo OmniKassa dashboard.
 
 The following chapters describe how these steps are implemented using the SDK.
@@ -139,13 +139,13 @@ The following chapters describe how these steps are implemented using the SDK.
 
 <a name="preparing-order"></a>
 ##### Preparing order
-In order to make a payment request, an order must first be prepared. The order contains all the information about the 
-payment request that Rabo OmniKassa needs in order to guide the customer through the payment steps. 
-The following code blocks are examples for creating an order. The order is subject to requirements and if it does not meet certain criteria, 
+In order to make a payment request, an order must first be prepared. The order contains all the information about the
+payment request that Rabo OmniKassa needs in order to guide the customer through the payment steps.
+The following code blocks are examples for creating an order. The order is subject to requirements and if it does not meet certain criteria,
 certain payment methods are not available, the order will be cleaned or rejected.
 
-**PHP** 
-```php 
+**PHP**
+```php
 use nl\rabobank\gict\payments_savings\omnikassa_sdk\model\Money;
 use nl\rabobank\gict\payments_savings\omnikassa_sdk\model\OrderItem;
 use nl\rabobank\gict\payments_savings\omnikassa_sdk\model\PaymentBrand;
@@ -199,7 +199,7 @@ $customerInformation = CustomerInformation::createFrom([
     'telephoneNumber' => '0204971111',
     'fullName' => 'Jan van Veen'
 ]);
-        
+
 $order = MerchantOrder::createFrom([
     'merchantOrderId' => '100',
     'description' => 'Order ID: 100',
@@ -219,7 +219,7 @@ $order = MerchantOrder::createFrom([
 ]);
 ```
 
-**Java** 
+**Java**
 ```java
 import java.util.Collections;
 import nl.rabobank.gict.payments_savings.omnikassa_frontend.sdk.model.*;
@@ -236,7 +236,7 @@ OrderItem orderItem = new OrderItem.Builder()
     .withItemCategory(ItemCategory.DIGITAL)
     .withVatCategory(VatCategory.HIGH)
     .build();
- 
+
 CustomerInformation customerInformation = new CustomerInformation.Builder()
     .withTelephoneNumber("0204971111")
     .withInitials("J.M.")
@@ -257,7 +257,7 @@ Address shippingDetails = new Address.Builder()
     .withCity("Haarlem")
     .withCountryCode(CountryCode.NL)
     .build()
- 
+
 Address billingDetails = new Address.Builder()
     .withFirstName("Jan")
     .withMiddleName("van")
@@ -283,11 +283,11 @@ MerchantOrder order = new MerchantOrder.Builder()
     .withSkipHppResultPage(true)
     .withPaymentBrand(PaymentBrand.IDEAL)
     .withPaymentBrandForce(PaymentBrandForce.FORCE_ONCE)
-    .withPaymentBrandMetaData(Collections.singletonMap("issuerId", "RABONL2U"))    
+    .withPaymentBrandMetaData(Collections.singletonMap("issuerId", "RABONL2U"))
     .build();
 ```
 
-**.NET** 
+**.NET**
 ```csharp
 using System.Collections.Generic;
 using OmniKassa.Model;
@@ -337,7 +337,7 @@ Address shippingDetails = new Address.Builder()
    .WithCity("Haarlem")
    .WithCountryCode(CountryCode.NL)
    .Build();
-   
+
 Dictionary<string, string> paymentBrandMetaData = new Dictionary<string, string>();
 paymentBrandMetaData.Add("issuerId", "RABONL2U");
 
@@ -390,7 +390,7 @@ Below are all the fields with the name, a description, and the rules to which th
 | `merchantReturnURL`    | The URL the customer will return to after the payment steps have been completed                                       | Required                                                                                                                                                                                                                                                                                           |
 |                        |                                                                                                                       | Must be a valid URL                                                                                                                                                                                                                                                                                |
 | `paymentBrand`         | The payment method to which the customer is limited                                                                   | Optional                                                                                                                                                                                                                                                                                           |
-|                        |                                                                                                                       | Must be one of the following values: IDEAL, AFTERPAY, PAYPAL, MasterCard, VISA, BANCONTACT, MAESTRO, V_PAY                                                                                                                                                                                         |
+|                        |                                                                                                                       | Must be one of the following values: IDEAL, AFTERPAY, PAYPAL, MasterCard, VISA, BANCONTACT, MAESTRO, V_PAY, SOFORT                                                                                                                                                                                         |
 |                        |                                                                                                                       | When value is CARDS, then all card payment methods are offered (MasterCard, Visa, Bancontact, Maestro, and V PAY)                                                                                                                                                                                  |
 | `paymentBrandForce`    | Is used to enforce the payment method                                                                                 | Optional, if the field `paymentBrand` is supplied then this field is required.                                                                                                                                                                                                                     |                                                                      |
 |                        |                                                                                                                       | Must be one of the following values: FORCE_ONCE or FORCE_ALWAYS                                                                                                                                                                                                                                    |
@@ -423,7 +423,7 @@ To create a _Money_ instance, use the following code:
 $moneyFromCents = Money::fromCents('EUR', 175);
 //75,99 Euro
 $moneyFromDecimal = Money::fromDecimal('EUR', 75.99);
- 
+
 //Rounding examples
 //1000 Euro cents
 $amountInCents = Money::fromDecimal('EUR', 9.999)->getAmount();
@@ -438,7 +438,7 @@ $amountInCents = Money::fromDecimal('EUR',9.995)->getAmount();
 //1,75 Euro
 Money moneyFromEuros = Money.fromEuros(Currency.EUR, BigDecimal.valueOf(175, 2));
 Money moneyFromString = Money.fromEuros(Currency.EUR, new BigDecimal("1.75"));
-``` 
+```
 
 **.NET**
 ```csharp
@@ -446,7 +446,7 @@ using OmniKassa.Model;
 using OmniKassa.Model.Enums;
 
 Money moneyFromDecimal = Money.FromEuros(Currency.EUR, 1.75m);
-``` 
+```
 
 **Address / ShippingDetails**
 
@@ -512,7 +512,7 @@ The supported ZIP code formats are as follows. The remaining country codes only 
 |                   |                                        | Has a maximum length of 128 characters.                                 |
 |                   |                                        | Consult [this section](#customer-name-dashboard) for more information.  |
 
-For the payment method _AfterPay_, Rabo OmniKassa shows a page to the customer in which he can complete or modify the above fields after the order announcement. 
+For the payment method _AfterPay_, Rabo OmniKassa shows a page to the customer in which he can complete or modify the above fields after the order announcement.
 Your webshop will **not** be informed of the details that are filled in during this process.
 
 **OrderItem**
@@ -625,7 +625,7 @@ OrderItem pears = new OrderItem.Builder()
 
 **Discount**
 
-A discount in the order is also provided by an order item but the amount and (if applicable) the tax fields have a negative value.  
+A discount in the order is also provided by an order item but the amount and (if applicable) the tax fields have a negative value.
 The following examples describe a discount of 10 euros:
 
 **PHP**
@@ -655,7 +655,7 @@ OrderItem discount = new OrderItem.Builder()
     .withVatCategory(VatCategory.LOW)
     .build();
 
-``` 
+```
 
 **.NET**
 ```csharp
@@ -671,7 +671,7 @@ OrderItem discount = new OrderItem.Builder()
    .Build();
 ```
 
-The `Amount` of the `MerchantOrder` must match the sum of the order items if the `OrderItems` is supplied.  
+The `Amount` of the `MerchantOrder` must match the sum of the order items if the `OrderItems` is supplied.
 
 The total amount can be calculated as follows:
 
@@ -680,7 +680,7 @@ The total amount can be calculated as follows:
 $orderTotalInCents = 0;
 foreach ($orderItems as $orderItem) {
     $priceTaxInclusiveInCents = $orderItem->getAmount()->getAmount();
-    $orderTotalInCents += $priceTaxInclusiveInCents * $orderItem->getQuantity(); 
+    $orderTotalInCents += $priceTaxInclusiveInCents * $orderItem->getQuantity();
 }
 $orderAmount = Money::fromCents('EUR', $orderTotalInCents);
 ```
@@ -709,40 +709,41 @@ foreach (var orderItem in orderItems)
 Money orderAmount = Money.FromEuros(Currency.EUR, totalAmount);
 ```
 
-Should there be an incorrect order which was sent and Rabo OmniKassa can repair it, then an attempt is made to correct the order by removing or shortening any data. 
+Should there be an incorrect order which was sent and Rabo OmniKassa can repair it, then an attempt is made to correct the order by removing or shortening any data.
 This applies only in extreme cases and may result in specific payment methods not being available for this order.
 
 **Required fields per payment method**
 
-Regardless of the payment method, at least the `merchantOrderId`, `amount` and the `merchantReturnUrl` must be included in each order. 
+Regardless of the payment method, at least the `merchantOrderId`, `amount` and the `merchantReturnUrl` must be included in each order.
 Depending on the payment method, additional information must be included in the order.
 
 The table below shows what data this is, broken down by payment method:
 
-| Payment method   | Additional information in the order                                                                                                                                                                   |
-|------------------| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| iDEAL            | No additional information is required for this payment method.                                                                                                                                        |
-| PayPal           | Although not mandatory, we also recommend that you include order items in the order for additional security regarding PayPal's payment to the webshop owner.                                          |
-| Bancontact       | Although not mandatory, we advise you to include the delivery address (or, if not known, the billing address) in the order for additional certainty about a successful payment.                       |
-| Visa             | Although not mandatory, we advise you to include the delivery address (or, if not known, the billing address) in the order for additional certainty about a successful payment.                       |                                                                                                                                                                                                    
-| MasterCard       | Although not mandatory, we advise you to include the delivery address (or, if not known, the billing address) in the order for additional certainty about a successful payment.                       |                                                                                                                                                                                                    
-| V PAY            | Although not mandatory, we advise you to include the delivery address (or, if not known, the billing address) in the order for additional certainty about a successful payment.                       |                                                                                                                                                                                                     
-| Maestro          | Although not mandatory, we advise you to include the delivery address (or, if not known, the billing address) in the order for additional certainty about a successful payment.                       |                                                                                                                                                                                                     
-| AfterPay         | For AfterPay, the following additional information is required:                                                                                                                                       |
-|                  | - Order items with per order item the ID, the description and the sales tax amount or the sales tax category.                                                                                         |
-|                  | - Billing or delivery address (if different then both addresses are required).                                                                                                                        |
-|                  | In addition, AfterPay requires that the MerchantOrderId field to be unique.                                                                                                                           |
-|                  | The order amount must be at least 5 euro.                                                                                                                                                             |
+| Payment method | Additional information in the order                                                                                                                                             |
+|----------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| iDEAL          | No additional information is required for this payment method.                                                                                                                  |
+| PayPal         | Although not mandatory, we also recommend that you include order items in the order for additional security regarding PayPal's payment to the webshop owner.                    |
+| Bancontact     | Although not mandatory, we advise you to include the delivery address (or, if not known, the billing address) in the order for additional certainty about a successful payment. |
+| Visa           | Although not mandatory, we advise you to include the delivery address (or, if not known, the billing address) in the order for additional certainty about a successful payment. |
+| MasterCard     | Although not mandatory, we advise you to include the delivery address (or, if not known, the billing address) in the order for additional certainty about a successful payment. |
+| V PAY          | Although not mandatory, we advise you to include the delivery address (or, if not known, the billing address) in the order for additional certainty about a successful payment. |
+| Maestro        | Although not mandatory, we advise you to include the delivery address (or, if not known, the billing address) in the order for additional certainty about a successful payment. |
+| AfterPay       | For AfterPay, the following additional information is required:                                                                                                                 |
+|                | - Order items with per order item the ID, the description and the sales tax amount or the sales tax category.                                                                   |
+|                | - Billing or delivery address (if different then both addresses are required).                                                                                                  |
+|                | In addition, AfterPay requires that the MerchantOrderId field to be unique.                                                                                                     |
+|                | The order amount must be at least 5 euro.                                                                                                                                       |
+| Sofort         | No additional information is required for this payment method.                                                                                                                                                                                |
 
-If for a payment method the mandatory additional information is missing in the order then the customer cannot use this method to fulfill the payment. 
+If for a payment method the mandatory additional information is missing in the order then the customer cannot use this method to fulfill the payment.
 If the payment method was included in the order using the PaymentBrand field, the announcement will be refused by Rabo OmniKassa.
 
 <a name="creating-endpoint"></a>
 #### Creating endpoint
-Besides an order is also an instance of an `Endpoint` needed. With this `Endpoint` it is possible to perform all calls towards the Rabo OmniKassa. 
+Besides an order is also an instance of an `Endpoint` needed. With this `Endpoint` it is possible to perform all calls towards the Rabo OmniKassa.
 An `Endpoint` is instantiated with three parameters: an Url, A _Base64_ encoded signing key, and a `TokenProvider` implementation.
 
-The URL determines whether the production environment or the sandbox environment is linked: 
+The URL determines whether the production environment or the sandbox environment is linked:
 
 | Environment   | Description                                                                                                                                                              |
 |-------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -750,22 +751,22 @@ The URL determines whether the production environment or the sandbox environment
 | Sandbox       | This is a test environment. Payments in this environment are simulated and are only intended to test the connections with your webshop.                                  |
 
 The environments can be configured in Rabo OmniKassa Dashboard - for example, which payment methods should be offered.
-The signing key is a secret key that can be found in the Rabo OmniDashboard. This signing key is _BASE64_ encoded. 
-The signing key is used by Rabo Omnikassa to cryptographically sign the data in the `merchantReturnUrl` as well as the data in the messages that are sent to the webhook. 
+The signing key is a secret key that can be found in the Rabo OmniDashboard. This signing key is _BASE64_ encoded.
+The signing key is used by Rabo Omnikassa to cryptographically sign the data in the `merchantReturnUrl` as well as the data in the messages that are sent to the webhook.
 The webshop must use this information to verify the authenticity of the message. This is done automatically by the SDK..
 
-Finally, we need the implementation of the `TokenProvider`. This implementation is responsible for providing and storing token information. 
-For example, an implementation can store the data in a database, on a file system, or in memory. 
-The aim is that your `TokenProvider` provides a refresh token by default -it must be available in the `TokenProvider` before the first call is made. 
-This token can be found in the Rabo OmniKassa Dashboard and is a unique token with long term validity (typically a few years). It is used to request an access token from Rabo Omnikassa. 
-The access token is valid for a limited amount of time (typically one hour) and must be used in all subsequent calls. This token is delivered to the `TokenProvider` for storage and also for reading. 
+Finally, we need the implementation of the `TokenProvider`. This implementation is responsible for providing and storing token information.
+For example, an implementation can store the data in a database, on a file system, or in memory.
+The aim is that your `TokenProvider` provides a refresh token by default -it must be available in the `TokenProvider` before the first call is made.
+This token can be found in the Rabo OmniKassa Dashboard and is a unique token with long term validity (typically a few years). It is used to request an access token from Rabo Omnikassa.
+The access token is valid for a limited amount of time (typically one hour) and must be used in all subsequent calls. This token is delivered to the `TokenProvider` for storage and also for reading.
 
 **PHP**
 ```php
 <?php
- 
+
 use nl\rabobank\gict\payments_savings\omnikassa_sdk\connector\TokenProvider;
- 
+
 class InMemoryTokenProvider extends TokenProvider
 {
     private $map = array();
@@ -950,16 +951,16 @@ The object of type `MerchantOrderResponse` as returned by the Java SDK contains 
 
 <a name="payment-brand-parameters"></a>
 #### Improve customer experience using payment brand parameters
-The default behavior for an online payment is to redirect the customer to the payment pages of Rabo OmniKassa after the 
-order has been announced. These are Rabobank-branded pages hosted by Rabo OmniKassa and they guide the customer through 
+The default behavior for an online payment is to redirect the customer to the payment pages of Rabo OmniKassa after the
+order has been announced. These are Rabobank-branded pages hosted by Rabo OmniKassa and they guide the customer through
 the payment process by presenting a list of payment brands and to ask the customer for additional details, depending on
 the selected payment brand. For an improved online payment experience Rabo OmniKassa provides means to skip some of
 these steps by letting the webshop supply payment brand information. For example, in the checkout process the webshop
-can already provide an option for the customer to select iDEAL as a payment brand as well as the bank. In this section 
+can already provide an option for the customer to select iDEAL as a payment brand as well as the bank. In this section
 we describe how the SDK facilitates this improved experience.
 
 The first improvement is to allow the customer to select the payment brand in the webshop. For this the SDK provides
-functionality to retrieve the payment brands that are currently configured and active within Rabo OmniKassa for the web 
+functionality to retrieve the payment brands that are currently configured and active within Rabo OmniKassa for the web
 shop. For a technical description on how to obtain the brands see
 [Request available payment brands](#request-available-payment-brands). The returned payment brand information can then
 be used for example to populate a select box in the webshop.
@@ -971,25 +972,25 @@ announcement:
 2. The `paymentBrandForce` field must specify whether the customer can select an alternative payment in the hosted
    payment pages.
 
-We explain the payment method and the force options in more detail. When the payment method is `IDEAL` and the Force 
-option `FORCE_ONCE` has been specified, then the customer will immediately start an iDEAL payment upon arrival at 
-Rabo OmniKassa and thus arrives on the bank selecting screen. The customer then has the option to finalize the payment 
+We explain the payment method and the force options in more detail. When the payment method is `IDEAL` and the Force
+option `FORCE_ONCE` has been specified, then the customer will immediately start an iDEAL payment upon arrival at
+Rabo OmniKassa and thus arrives on the bank selecting screen. The customer then has the option to finalize the payment
 or to choose another payment method by clicking on `<Choose Other Payment method>`. With the `FORCE_ALWAYS` it is not
-possible for the customer to choose another payment method. The only options are to approve or cancel the payment after 
+possible for the customer to choose another payment method. The only options are to approve or cancel the payment after
 selecting the bank.
 
 The second improvement applies only to iDEAL and allows the customer to also select his or her bank in the webshop. For
-this the SDK provides functionality to retrieve the list of participating banks. For a technical description on how to 
-obtain this list please consult [Request available iDEAL issuers](#request-available-ideal-issuers). The returned list 
+this the SDK provides functionality to retrieve the list of participating banks. For a technical description on how to
+obtain this list please consult [Request available iDEAL issuers](#request-available-ideal-issuers). The returned list
 of banks can then be used to populate another select box in the webshop that becomes visible after the customer has
 selected iDEAL as payment brand.
 
-Once the bank has been selected the webshop needs to include the ID of the bank in the `paymentBrandMetaData` field in 
-addition to the above-mentioned `paymentBrand` the `paymentBrandForce` fields. The `paymentBrandMetaData` field is a 
-key-value map. To specify the bank include an entry in this map with key 'issuerId' and as value the ID of the bank as 
+Once the bank has been selected the webshop needs to include the ID of the bank in the `paymentBrandMetaData` field in
+addition to the above-mentioned `paymentBrand` the `paymentBrandForce` fields. The `paymentBrandMetaData` field is a
+key-value map. To specify the bank include an entry in this map with key 'issuerId' and as value the ID of the bank as
 specified in the issuer list, for example 'RABONL2U'.
 
-By implementing these 2 improvements in the webshop the customer will be immediately redirected to the iDEAL page of 
+By implementing these 2 improvements in the webshop the customer will be immediately redirected to the iDEAL page of
 the selected bank after announcing the order to authorize the transaction.
 
 A final optimization can be achieved by setting the `skipHppResultPage` field in the order announcement to `true`. After
@@ -1008,8 +1009,8 @@ in the Omni Dashboard. There are two ways on how to achieve this.
 <a name="customer-pays-order"></a>
 ### Customer pays order
 
-When redirected to the payment pages of Rabo Omnikassa the customer can pay the order. When this is done, the customer is automatically redirected back to the webshop via the `merchantReturnUrl` specified in the order announcement. 
-With this `URL` some query parameters will be included that relate to the order, namely: 
+When redirected to the payment pages of Rabo Omnikassa the customer can pay the order. When this is done, the customer is automatically redirected back to the webshop via the `merchantReturnUrl` specified in the order announcement.
+With this `URL` some query parameters will be included that relate to the order, namely:
 
 | Parameter   | Description                                                                     |
 |------------ | --------------------------------------------------------------------------------|
@@ -1017,7 +1018,7 @@ With this `URL` some query parameters will be included that relate to the order,
 | `status`    | The current known status of the order.                                          |
 | `signature` | The signature makes it possible to verify that the request is authentic.        |
 
-To verify that the signature is authentic, the following code can be used. 
+To verify that the signature is authentic, the following code can be used.
 It is also advisable to make use of the `PaymentCompletedResponse` class so that the `order_id`, `status` and `signature` will be cleaned if they contain invalid/unsafe values.
 
 **PHP**
@@ -1033,14 +1034,14 @@ $paymentCompletedResponse = PaymentCompletedResponse::createInstance($orderId, $
 if (!$paymentCompletedResponse) {
     throw new Exception('The payment completed response was invalid.');
 }
- 
+
 // Use these variables instead of using the URL parameters ($orderId and $status). Input validation has been performed on these values.
 $validatedMerchantOrderId = $paymentCompletedResponse->getOrderID();
 $validatedStatus = $paymentCompletedResponse->getStatus();
- 
+
 // ... complete payment
-``` 
- 
+```
+
 **Java**
 ```java
 void paymentCompleted(HttpServletRequest request) {
@@ -1054,14 +1055,14 @@ void paymentCompleted(HttpServletRequest request) {
     } catch (RabobankSdkException invalidSignatureException){
        throw new IllegalStateException("The payment completed response was invalid.", invalidSignatureException);
     }
- 
+
     // Use these variables instead of using the URL parameters (orderId and status). Input validation has been performed on these values.
     String validatedOrderId = paymentCompletedResponse.getOrderID();
     String validatedStatus = paymentCompletedResponse.getStatus();
- 
+
    //... complete payment
 }
-``` 
+```
 
 **.NET Standard**
 ```csharp
@@ -1091,16 +1092,16 @@ String validatedOrderId = paymentCompletedResponse.OrderId;
 PaymentStatus validatedStatus = paymentCompletedResponse.Status;
 ```
 
-If the answer is invalid, it is advisable to redirect the customer to an error page but to consider the order as `open`. 
+If the answer is invalid, it is advisable to redirect the customer to an error page but to consider the order as `open`.
 At a later stage, the actual status of the order can be requested by means of notifications.
 
 <a name="receive-updates-about-orders"></a>
 ### Receive updates about orders
- 
- All the status transitions of an order are tracked by the Rabo OmniKassa so that they can be offered to the webshop with the help of notifications. 
- The Rabo OmniKassa does this by sending a notification to the `webhookUrl` through a `Post` request with the notification as JSON. 
- The `webhookUrl` can be configured in the dashboard of Rabo OmniKassa. 
- 
+
+ All the status transitions of an order are tracked by the Rabo OmniKassa so that they can be offered to the webshop with the help of notifications.
+ The Rabo OmniKassa does this by sending a notification to the `webhookUrl` through a `Post` request with the notification as JSON.
+ The `webhookUrl` can be configured in the dashboard of Rabo OmniKassa.
+
  A notification looks like this:
 
 **Notification**
@@ -1146,7 +1147,7 @@ ResponseEntity webhook(@RequestBody ApiNotification apiNotification) throws Rabo
 
     MerchantOrderStatusResponse merchantOrderStatusResponse;
     do {
-        merchantOrderStatusResponse = endpoint.retrieveAnnouncement(apiNotification); 
+        merchantOrderStatusResponse = endpoint.retrieveAnnouncement(apiNotification);
         for (MerchantOrderResult result : merchantOrderStatusResponse:getOrderResults()) {
             // Update the order status using the properties in result
         }
@@ -1170,7 +1171,7 @@ public ActionResult Webhook([FromBody] ApiNotification notification)
     {
        response = await omniKassa.RetrieveAnnouncement(notification);
         foreach(MerchantOrderResult result in response.OrderResults)
-        { 
+        {
             // Update the order status using the properties in result
         }
     }
@@ -1194,7 +1195,7 @@ public ActionResult Webhook(ApiNotification notification)
     {
         response = omniKassa.RetrieveAnnouncement(notification);
         foreach(MerchantOrderResult result in response.OrderResults)
-        { 
+        {
             // Update the order status using the properties in result
         }
     }
@@ -1202,10 +1203,10 @@ public ActionResult Webhook(ApiNotification notification)
 
     return new HttpStatusCodeResult(HttpStatusCode.OK);
 }
-``` 
+```
 
-This step also verifies the signature of the notification. 
-If the validation fails, for example when a different signing key is active in the dashboard, then the order data will not be retrieved. Rabo Omnikassa will send a new notification at a later time.  
+This step also verifies the signature of the notification.
+If the validation fails, for example when a different signing key is active in the dashboard, then the order data will not be retrieved. Rabo Omnikassa will send a new notification at a later time.
 More information regarding this process can be found in the User Manual of Rabo OmniKassa.
 
 The `MerchantOrderStatusResponse` object returned by the call to the `retrieveAnnouncement` method consists of the following properties:
@@ -1236,8 +1237,8 @@ As shown above, an object of type `MerchantOrderResult` contains the data of a s
 <a name="request-available-payment-brands"></a>
 ### Request available payment brands
 
-The SDK also provides functionality to look up all payment brands of a webshop as configured in the dashboard of Rabo OmniKassa. 
-This information can be used to determine which payment brands are available to the customer. 
+The SDK also provides functionality to look up all payment brands of a webshop as configured in the dashboard of Rabo OmniKassa.
+This information can be used to determine which payment brands are available to the customer.
 It is typically used in conjunction with the `paymentBrand` and `paymentBrandForce` fields of an order announcement ([Order announcement](#order-announcement)).
 
 **Important:** The payment brands should not be requested real-time for each payment, but instead be cached locally and updated at certain time intervals (e.g. every few hours).
@@ -1285,33 +1286,34 @@ foreach(PaymentBrandInfo brand in response.PaymentBrands)
 }
 ```
 
-As shown above the `retrievePaymentBrands()` method of the Endpoint class returns an instance of `PaymentBrandsResponse`. 
-This class provides a method `getPaymentBrands()` that returns a list containing all payment brands that are configured for the webshop. 
+As shown above the `retrievePaymentBrands()` method of the Endpoint class returns an instance of `PaymentBrandsResponse`.
+This class provides a method `getPaymentBrands()` that returns a list containing all payment brands that are configured for the webshop.
 Each element of this list is an object of type `PaymentBrandInfo` containing the details of a single payment brand, as shown in the following table.
 
-| Field    | Description                                                                                                                 |
-|--------- | ----------------------------------------------------------------------------------------------------------------------------|
-| `name`   | A string containing the name of the payment brand. This string may contain one of the following values:                     |
-|          | IDEAL                                                                                                                       |
-|          | PAYPAL                                                                                                                      |
-|          | AFTERPAY                                                                                                                    |
-|          | MASTERCARD                                                                                                                  |
-|          | VISA                                                                                                                        |
-|          | BANCONTACT                                                                                                                  |
-|          | MAESTRO                                                                                                                     |
-|          | V_PAY                                                                                                                       |
-|          | Note: Keep in mind that other values can be expected as well whenever Rabo OmniKassa is extended with new payment brands.   |
-| `active` | A boolean indicating if the payment brand is active (true) or inactive (false).                                             |
+| Field    | Description                                                                                                               |
+|----------|---------------------------------------------------------------------------------------------------------------------------|
+| `name`   | A string containing the name of the payment brand. This string may contain one of the following values:                   |
+|          | IDEAL                                                                                                                     |
+|          | PAYPAL                                                                                                                    |
+|          | AFTERPAY                                                                                                                  |
+|          | MASTERCARD                                                                                                                |
+|          | VISA                                                                                                                      |
+|          | BANCONTACT                                                                                                                |
+|          | MAESTRO                                                                                                                   |
+|          | V_PAY                                                                                                                     |
+|          | SOFORT                                                                                                                    |
+|          | Note: Keep in mind that other values can be expected as well whenever Rabo OmniKassa is extended with new payment brands. |
+| `active` | A boolean indicating if the payment brand is active (true) or inactive (false).                                           |
 
-Only the payment brands that are returned in this list and are active can be used for payments. 
+Only the payment brands that are returned in this list and are active can be used for payments.
 
 <a name="request-available-ideal-issuers"></a>
 ### Request available iDEAL issuers
-In this section we explain how to obtain the iDEAL issuers. This functionality is typically used to directly start an 
+In this section we explain how to obtain the iDEAL issuers. This functionality is typically used to directly start an
 iDEAL transaction from the webshop without first redirecting the customer to the payment pages of Rabo OmniKassa to
 select iDEAL as the payment brand and then the issuer.
 
-**Important:** The list of iDEAL issuers should not be requested real-time for each payment, but instead be cached 
+**Important:** The list of iDEAL issuers should not be requested real-time for each payment, but instead be cached
 locally and updated daily.
 
 Given an `Endpoint` ([Creating endpoint](#creating-endpoint)) we can obtain this list as follows.
@@ -1361,7 +1363,7 @@ Each element of this list is an object containing the details of a single iDEAL 
 | `logos`        | A list of objects containing logo details of the issuer. This information can be used to render the logo of the issuer in the webshop. See table below for more details on the logo properties.                                                                                  |
 | `countryNames` | Contains the country names in the official languages of the country, separated by a '/' symbol. As prescribed by the iDEAL integration guide this only needs to be displayed if there are banks from more than one country on the Issuer list (which is currently not the case). |
 
-The table below contains the properties of an iDEAL issuer logo. 
+The table below contains the properties of an iDEAL issuer logo.
 
 | Field      | Description                                                                                |
 |----------- | -------------------------------------------------------------------------------------------|
