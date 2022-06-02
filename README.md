@@ -88,7 +88,7 @@ The .NET SDK supports the following .NET platforms:
 - .NET Core 2.1 / 3.1
 - .NET 5.0
 
-You can download the .NET SDK from NuGet https://www.nuget.org/packages/OmniKassa_Rabobank/
+You can install the .NET SDK from NuGet https://www.nuget.org/packages/OmniKassa_Rabobank/
 
 If applicable, this document will display separate code examples for these platforms.
 
