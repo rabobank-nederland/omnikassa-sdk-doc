@@ -276,7 +276,7 @@ MerchantOrder order = new MerchantOrder.Builder()
     .withMerchantOrderId("ORDID123")
     .withDescription("An example description")
     .withOrderItems(Collections.singletonList(orderItem))
-    .withAmount(Money.fromDecimal(Currency.EUR, new BigDecimal("99.99")))
+    .withAmount(Money.fromEuros(Currency.EUR, new BigDecimal("99.99")))
     .withCustomerInformation(customerInformation)
     .withShippingDetail(shippingDetails)
     .withBillingDetail(billingDetails)
@@ -582,8 +582,8 @@ OrderItem apples = new OrderItem.Builder()
     .withQuantity(2)
     .withName("Apple")
     .withDescription("A delicious apple")
-    .withAmount(Money.fromEuros(Currency.EUR, BigDecimal.valueOf("1.50")))
-    .withTax(Money.fromEuros(Currency.EUR, BigDecimal.valueOf("0.14")))
+    .withAmount(Money.fromEuros(Currency.EUR, new BigDecimal("1.50")))
+    .withTax(Money.fromEuros(Currency.EUR, new BigDecimal("0.14")))
     .withItemCategory(ItemCategory.PHYSICAL)
     .withVatCategory(VatCategory.LOW)
     .build();
@@ -593,8 +593,8 @@ OrderItem pears = new OrderItem.Builder()
     .withQuantity(3)
     .withName("Pear")
     .withDescription("A delicious pear")
-    .withAmount(Money.fromEuros(Currency.EUR, BigDecimal.valueOf("1.75")))
-    .withTax(Money.fromEuros(Currency.EUR, BigDecimal.valueOf("0.16")))
+    .withAmount(Money.fromEuros(Currency.EUR, new BigDecimal("1.75")))
+    .withTax(Money.fromEuros(Currency.EUR, new BigDecimal("0.16")))
     .withItemCategory(ItemCategory.PHYSICAL)
     .withVatCategory(VatCategory.LOW)
     .build();
@@ -651,8 +651,8 @@ OrderItem discount = new OrderItem.Builder()
     .withQuantity(1)
     .withName("Discount")
     .withDescription("Frequent buyer")
-    .withAmount(Money.fromEuros(Currency.EUR, BigDecimal.valueOf("-10")))
-    .withTax(Money.fromEuros(Currency.EUR, BigDecimal.valueOf("-0.9")))
+    .withAmount(Money.fromEuros(Currency.EUR, new BigDecimal("-10")))
+    .withTax(Money.fromEuros(Currency.EUR, new BigDecimal("-0.9")))
     .withItemCategory(ItemCategory.PHYSICAL)
     .withVatCategory(VatCategory.LOW)
     .build();
@@ -883,7 +883,7 @@ use nl\rabobank\gict\payments_savings\omnikassa_sdk\endpoint\Endpoint;
 
 $signingKey = new SigningKey(base64_decode('{signing_key}'));
 $inMemoryTokenProvider = new InMemoryTokenProvider('{refresh_token}');
-$endpoint = Endpoint::createInstance(ENVIRONMENT::PRODUCTION, $signingKey, $inMemoryTokenProvider);
+$endpoint = Endpoint::createInstance(Environment::PRODUCTION, $signingKey, $inMemoryTokenProvider);
 ```
 
 **Java**
@@ -892,7 +892,7 @@ import nl.rabobank.gict.payments_savings.omnikassa_frontend.sdk.*;
 import nl.rabobank.gict.payments_savings.omnikassa_frontend.sdk.connector.TokenProvider;
 
 TokenProvider inMemoryTokenProvider = new InMemoryTokenProvider("{refresh_token}");
-Endpoint endpoint = Endpoint.createInstance(ENVIRONMENT.PRODUCTION, "{signing_key}", inMemoryTokenProvider);
+Endpoint endpoint = Endpoint.createInstance(Environment.PRODUCTION, "{signing_key}", inMemoryTokenProvider);
 ```
 
 **.NET**
@@ -1125,7 +1125,7 @@ use nl\rabobank\gict\payments_savings\omnikassa_sdk\model\Environment;
 
 $signingKey = new SigningKey(base64_decode('{signing_key}'));
 $inMemoryTokenProvider = new InMemoryTokenProvider('{refresh_token}');
-$endpoint = Endpoint::createInstance(ENVIRONMENT::PRODUCTION, $signingKey, $inMemoryTokenProvider);
+$endpoint = Endpoint::createInstance(Environment::PRODUCTION, $signingKey, $inMemoryTokenProvider);
 
 $json = file_get_contents('php://input');
 $announcementResponse = new AnnouncementResponse($json, $signingKey);
