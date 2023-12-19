@@ -88,9 +88,8 @@ The jar files that this SDK depends on are in the Lib subdirectory. Both the SDK
 #### .NET SDK
 The .NET SDK supports the following .NET platforms:
 
-- .NET Framework (version 4.5.2 or higher)
-- .NET Core 2.1 / 3.1
-- .NET 5.0
+- .NET Framework (version 4.6.2 or higher)
+- .NET 6.0
 
 You can install the .NET SDK from NuGet https://www.nuget.org/packages/OmniKassa_Rabobank/
 
