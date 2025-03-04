@@ -771,7 +771,7 @@ The URL determines whether the production environment or the sandbox environment
 The environments can be configured in Rabo Smart Pay Dashboard - for example, which payment methods should be offered.
 The signing key is a secret key that can be found in the Rabo OmniDashboard. This signing key is _BASE64_ encoded.
 The signing key is used by Rabo Smart Pay to cryptographically sign the data in the `merchantReturnUrl` as well as the data in the messages that are sent to the webhook.
-The webshop must use this information to verify the authenticity of the message. This is done automatically by the SDK..
+The webshop must use this information to verify the authenticity of the message. This is done automatically by the SDK.
 
 Finally, we need the implementation of the `TokenProvider`. This implementation is responsible for providing and storing token information.
 For example, an implementation can store the data in a database, on a file system, or in memory.
@@ -970,7 +970,7 @@ The object of type `MerchantOrderResponse` as returned by the Java SDK contains 
 <a name="payment-brand-parameters"></a>
 #### Improve customer experience using payment brand parameters
 The default behavior for an online payment is to redirect the customer to the payment pages of Rabo Smart Pay after the
-order has been announced. These are pages are hosted by Rabo Smart Pay, and they guide the customer through
+order has been announced. These pages are hosted by Rabo Smart Pay, and they guide the customer through
 the payment process by presenting a list of payment brands and to ask the customer for additional details, depending on
 the selected payment brand. For an improved online payment experience Rabo Smart Pay provides means to skip some of
 these steps by letting the webshop supply payment brand information. For example, in the checkout process the webshop
@@ -1205,7 +1205,7 @@ As shown above, an object of type `MerchantOrderResult` contains the data of a s
 |                       | CANCELLED: The order was canceled by the customer.                                                                                                                                                 |
 |                       | EXPIRED: The order has expired without the customer having paid.                                                                                                                                   |
 | `orderStatusDateTime` | The most recent timestamp of the order.                                                                                                                                                            |
-|                       | If there was no payment attempt, this field will contain the time the order was announced at OmniKassa.                                                                                            |
+|                       | If there was no payment attempt, this field will contain the time the order was announced at Smart Pay.                                                                                            |
 |                       | Otherwise, this field contains the time of the most recent payment attempt.                                                                                                                        |
 | `errorCode`           | This field is reserved for future use. Currently, this field does not contain a value.                                                                                                             |
 | `paidAmount`          | The amount paid by the customer. In case of COMPLETED, it is equal to the order amount as given by the webshop at the announcement. When CANCELLED and EXPIRED, this field will have a value of 0. |
@@ -1246,7 +1246,7 @@ The object returned by the call to the `getOrderStatus` method consists contains
 | Field             | Description                                                                                                                                                       |
 |-------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `merchantOrderId` | The ID of the order as specified by the webshop when the order was announced.                                                                                     |
-| `id`              | The unique ID assigned by OmniKassa to the order at the time of the announcement.                                                                                 |
+| `id`              | The unique ID assigned by Smart Pay to the order at the time of the announcement.                                                                                 |
 | `status`          | The status of the order. The following values are possible:                                                                                                       |
 |                   | IN_PROGRESS: Payment of order is yet to be finalized.                                                                                                             |
 |                   | COMPLETED: The full amount of the order is paid by the customer.                                                                                                  |
@@ -1259,7 +1259,7 @@ An object of type `TransactionStatusInfo` contains the data of a single transact
 
 | Field           | Description                                                                                                                     |
 |-----------------|---------------------------------------------------------------------------------------------------------------------------------|
-| `id`            | The unique ID assigned by OmniKassa to the transaction at the time it was created. Needed for refunds                           |
+| `id`            | The unique ID assigned by Smart Pay to the transaction at the time it was created. Needed for refunds                           |
 | `paymentBrand`  | The paymentbrand of this transaction. Can be one of the following: IDEAL, PAYPAL, MASTERCARD, VISA, BANCONTACT, MAESTRO, V_PAY. |
 | `type`          | The type of transaction, can be AUTHORIZE or PAYMENT                                                                            |
 | `status`        | The status of the transaction. The following values are possible:                                                               |
