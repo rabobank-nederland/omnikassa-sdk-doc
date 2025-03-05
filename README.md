@@ -1234,6 +1234,16 @@ As shown above, an object of type `Transaction` contains the data of a single tr
 
 In addition to receiving notifications about the status of an order, it is also possible to request the status of an order at any time.
 
+> Order statuses are guaranteed to remain available for 24 hours after the order reaches a final status.
+> 
+> The endpoint should only be used in rare cases where a webhook notification has not been received. 
+For monitoring status changes, it is mandatory to use the webhook mechanism provided. 
+Polling this endpoint for status updates is explicitly prohibited.
+>
+> Rabo Smart Pay reserves the right to rate limit or disable this endpoint entirely if it is used in a manner inconsistent with its intended purpose.
+>
+> Please note: This endpoint is currently unavailable in the SANDBOX environment.
+
 Given an `Endpoint` ([Creating endpoint](#creating-endpoint)) and an omnikassaOrderId, we can retrieve the details of an order as follows:
 
 **Java**
