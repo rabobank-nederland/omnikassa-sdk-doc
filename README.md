@@ -1,17 +1,17 @@
 # Software Development Kit
-# Rabo OmniKassa
+# Rabo Smart Pay
 
 ##### _Developer’s manual version_
 
-Version: 1.19 January 2024
+Version: 1.20 February 2025
 
 Contact e-mail address: contact@smartpay.rabobank.nl
 
-> © Rabobank, 2024
+> © Rabobank, 2025
 
 > No part of this publication may be reproduced in any form by print, photo print, microfilm or any other means without written permission by Rabobank.
 
-> Disclaimer: This manual is exclusively intended for third parties who take care of the technical link between Rabo OmniKassa and the customer's webshop for and on behalf of clients. Rabobank is not liable for possible damage resulting from errors in or incorrect use of the manual. For example, but not limited to, damage that occurs because the technical link between Rabo OmniKassa and the customer's webshop does not work (completely) correctly. Rabobank has the right to change this manual.
+> Disclaimer: This manual is exclusively intended for third parties who take care of the technical link between Rabo Smart Pay and the customer's webshop for and on behalf of clients. Rabobank is not liable for possible damage resulting from errors in or incorrect use of the manual. For example, but not limited to, damage that occurs because the technical link between Rabo Smart Pay and the customer's webshop does not work (completely) correctly. Rabobank has the right to change this manual.
 
 ### Table of contents
 
@@ -33,12 +33,19 @@ Contact e-mail address: contact@smartpay.rabobank.nl
   * [Sending order](#sending-order)
   * [Improve customer experience using payment brand parameters](#payment-brand-parameters)
 - [Customer pays order](#customer-pays-order)
-- [Receive updates about orders](#receive-updates-about-orders)
+- [Receive order updates](#receive-updates-about-orders)
+- [Request order status](#request-order-status)
 - [Request available payment brands](#request-available-payment-brands)
 - [Request available iDEAL issuers](#request-available-ideal-issuers)
+- [Initiate Refund request](#initiate-refund-request)
+- [Retrieve refund details](#retrieve-refund-details)
+- [Retrieve refundable details](#retrieve-refundable-details)
 
 <a name="changelog"></a>
 ### Changelog
+
+#### Version 1.20
+* Added new endpoint to request the status / details of an order.
 
 #### Version 1.19
 * Added User-Agent and partnerReference documentation
@@ -102,7 +109,7 @@ If applicable, this document will display separate code examples for these platf
 
 <a name="ssl-configuration"></a>
 #### SSL configuration
-In order to establish a HTTPS connection with Rabo OmniKassa, the Java Runtime environment, .NET environment or PHP (depending on the chosen SDK)
+In order to establish a HTTPS connection with Rabo Smart Pay, the Java Runtime environment, .NET environment or PHP (depending on the chosen SDK)
 should be configured with a CA bundle so that the certificate of https://betalen.rabobank.nl can be validated.
 Normally this is already the case and you do not need to do anything.
 If you are running PHP under Windows, you may need to configure the php.ini to include the property openssl.cafile containing the path to the CA bundle. Consult the PHP documentation for more information.
@@ -112,15 +119,15 @@ If you are running PHP under Windows, you may need to configure the php.ini to i
 
 <a name="purpose"></a>
 #### Purpose
-This document describes how a webshop can be connected to Rabo OmniKassa using the available SDKs.
+This document describes how a webshop can be connected to Rabo Smart Pay using the available SDKs.
 At this moment Rabobank SDKs provides the following programming languages/platforms: PHP, Java and .NET.
-It is possible that this manual already includes functionality that belongs to a payment method that is not yet available in the Rabo OmniKassa dashboard,
-this is not a problem for the proper operation of the SDK. In the Rabo OmniKassa Dashboard, the available payment methods can be selected.
+It is possible that this manual already includes functionality that belongs to a payment method that is not yet available in the Rabo Smart Pay dashboard,
+this is not a problem for the proper operation of the SDK. In the Rabo Smart Pay Dashboard, the available payment methods can be selected.
 
 <a name="signing-keys-and-refresh-tokens"></a>
 #### Signing keys and refresh tokens
 In the code, the identifiers {refresh_token} and {signing_key} refer to the refresh token and the signing key respectively.
-These indications should not be taken literally but replaced with the values you find in the dashboard of Rabo OmniKassa 2.0.
+These indications should not be taken literally but replaced with the values you find in the dashboard of Rabo Smart Pay 2.0.
 
 <a name="User-Agent-and-partnerReference"></a>
 #### User-Agent and partnerReference
@@ -130,23 +137,23 @@ In the code the identifiers {userAgent} and {partnerReference} refer to the User
 
 <a name="steps-in-processing-payments"></a>
 ### Steps in processing payments
-In order to obtain a global picture, this chapter describes the steps in which a payment is made via Rabo OmniKassa.
+In order to obtain a global picture, this chapter describes the steps in which a payment is made via Rabo Smart Pay.
 In the remaining chapters each of these steps is described in more detail.
 
 Each payment consists of the following three steps:
 
 1. **Order announcement**
-Before the customer can meet the payment request, the webshop first announces the order at Rabo OmniKassa.
-The order will include all the information that Rabo OmniKassa needs to lead the customer through the payment steps.
-In a successful order announcement Rabo OmniKassa returns a unique ID identifying the order and an URL that points to the payment pages.
+Before the customer can meet the payment request, the webshop first announces the order at Rabo Smart Pay.
+The order will include all the information that Rabo Smart Pay needs to lead the customer through the payment steps.
+In a successful order announcement Rabo Smart Pay returns a unique ID identifying the order and an URL that points to the payment pages.
 2. **Customer pays the order**
-The webshop redirects the customer to the URL that Rabo OmniKassa returned to in the step above.
-The customer is directed to Rabo OmniKassa payment pages and can fulfill the payment request.
+The webshop redirects the customer to the URL that Rabo Smart Pay returned to in the step above.
+The customer is directed to Rabo Smart Pay payment pages and can fulfill the payment request.
 When this is done, the customer is redirected back to the webshop.
 3. **Receive Updates about orders**
-In this step, Rabo OmniKassa sends a notification to the webhook URL of the webshop when one or more orders have been processed.
-By using a unique token (key) in this notification, the webshop can request the final status of these orders from Rabo OmniKassa.
-This step is optional and will only run if the webhook URL is configured in the Rabo OmniKassa dashboard.
+In this step, Rabo Smart Pay sends a notification to the webhook URL of the webshop when one or more orders have been processed.
+By using a unique token (key) in this notification, the webshop can request the final status of these orders from Rabo Smart Pay.
+This step is optional and will only run if the webhook URL is configured in the Rabo Smart Pay dashboard.
 
 The following chapters describe how these steps are implemented using the SDK.
 
@@ -156,7 +163,7 @@ The following chapters describe how these steps are implemented using the SDK.
 <a name="preparing-order"></a>
 ##### Preparing order
 In order to make a payment request, an order must first be prepared. The order contains all the information about the
-payment request that Rabo OmniKassa needs in order to guide the customer through the payment steps.
+payment request that Rabo Smart Pay needs in order to guide the customer through the payment steps.
 The following code blocks are examples for creating an order. The order is subject to requirements and if it does not meet certain criteria,
 certain payment methods are not available, the order will be cleaned or rejected.
 
@@ -410,7 +417,7 @@ Below are all the fields with the name, a description, and the rules to which th
 | `merchantReturnURL`             | The URL the customer will return to after the payment steps have been completed                                       | Required                                                                                                                                                                                                                                                                                         |
 |                                 |                                                                                                                       | Must be a valid URL                                                                                                                                                                                                                                                                              |
 | `paymentBrand`                  | The payment method to which the customer is limited                                                                   | Optional                                                                                                                                                                                                                                                                                         |
-|                                 |                                                                                                                       | Must be one of the following values: IDEAL, PAYPAL, MASTERCARD, VISA, BANCONTACT, MAESTRO, V_PAY, SOFORT                                                                                                                                                                                         |
+|                                 |                                                                                                                       | Must be one of the following values: IDEAL, PAYPAL, MASTERCARD, VISA, BANCONTACT, MAESTRO, V_PA                                                                                                                                                                                                  |
 |                                 |                                                                                                                       | When value is CARDS, then all card payment methods are offered (MasterCard, Visa, Bancontact, Maestro, and V PAY)                                                                                                                                                                                |
 | `paymentBrandForce`             | Is used to enforce the payment method                                                                                 | Optional, if the field `paymentBrand` is supplied then this field is required.                                                                                                                                                                                                                   |                                                                      |
 |                                 |                                                                                                                       | Must be one of the following values: FORCE_ONCE or FORCE_ALWAYS                                                                                                                                                                                                                                  |
@@ -419,7 +426,7 @@ Below are all the fields with the name, a description, and the rules to which th
 | `customerInformation`           | A limited set of customer information                                                                                 | Optional                                                                                                                                                                                                                                                                                         |
 | `billingDetails`                | The billing address of this order                                                                                     | Optional                                                                                                                                                                                                                                                                                         |
 | `initiatingParty`               | An ID identifying the party from which the order announcement was initiated                                           | Optional. This field must be left empty unless agreed otherwise with Rabobank                                                                                                                                                                                                                    |
-| `skipHppResultPage`             | Use this field to skip the hosted result page (also referred to as the success/thank you page) in the payment process | Optional                                                                                                                                                                                                                                                                                         
+| `skipHppResultPage`             | Use this field to skip the hosted result page (also referred to as the success/thank you page) in the payment process | Optional                                                                                                                                                                                                                                                                                         |
 
 For more information on how to use the `paymentBrand`, `paymentBrandForce`, `paymentBrandMetaData` and the
 `skipHppResultPage` please consult
@@ -427,13 +434,13 @@ For more information on how to use the `paymentBrand`, `paymentBrandForce`, `pay
 
 **Money**
 
-| Field      | Description    | Rules                                |
-|----------- | -------------- | -------------------------------------|
-| `currency` | The currency   | should not be null                   |
-|            |                | Must be EUR                          |
-|            |                | Other currencies are not supported   |
-| `amount`   | The amount     | should not be null                   |
-|            |                | Must be a natural number             |
+| Field      | Description  | Rules                              |
+|------------|--------------|------------------------------------|
+| `currency` | The currency | should not be null                 |
+|            |              | Must be EUR                        |
+|            |              | Other currencies are not supported |
+| `amount`   | The amount   | should not be null                 |
+|            |              | Must be a natural number           |
 
 To create a _Money_ instance, use the following code:
 
@@ -470,37 +477,37 @@ Money moneyFromDecimal = Money.FromEuros(Currency.EUR, 1.75m);
 
 **Address / ShippingDetails**
 
-| Field                  | Description                          | Rules                                                                                                                   |
-|----------------------- | ----------------------------------   | ------------------------------------------------------------------------------------------------------------------------|
-| `firstName`            | customer's name                      | Required                                                                                                                |
-|                        |                                      | Has a maximum length of 50 Characters                                                                                   |
-| `middleName`           | customer's middle name               | Optional                                                                                                                |
-|                        |                                      | Has a maximum length of 20 Characters                                                                                   |
-| `lastName`             | Last name of the customer            | Required                                                                                                                |
-|                        |                                      | Has a maximum length of 50 Characters                                                                                   |
-| `street`               | Street name of the address           | Required                                                                                                                |
-|                        |                                      | Has a maximum length of 100 Characters.                                                                                 |
-|                        |                                      | Note: In the case of card payment at Worldline, this field is shortened to a maximum of 50 characters.                  |
-| `postalCode`           | Postal Code of the address           | Required                                                                                                                |
-|                        |                                      | Must match the ZIP/Postal code format of the selected CountryCode                                                       |
-| `city`                 | City of Address                      | Required                                                                                                                |
-|                        |                                      | Has a maximum length of 40 Characters                                                                                   |
-| `countryCode`          | Country Code of Address              | Required                                                                                                                |
-|                        |                                      | Must be one of the following values:                                                                                    |
-|                        |                                      | AF, AX,AL, DZ, VI, AS, AD, AO, AI, AQ, AG, AR, AM, AW, AU, AZ, BS, BH, BD, BB, BE,,BZ, BJ, BM, BT, BO, BQ,              |
-|                        |                                      | BA, BW, BV, BR, VG, IO, BN, BG, BF, BI, KH, CA, CF, CL, CN, CX, CC, CO, KM , CG, CD, CK, CR, CU, CW, CY, DK,            |
-|                        |                                      | DJ, DM, DO, DE, EC,,EG, SV, GQ, ER, EE, ET, FO, FK, FJ, PH, FI, FR, TF, GF, PF, GA, GM, GE, GH,,GI, GD, GR,             |
-|                        |                                      | GL, GP, GU, GT, GG, GN, GW, GY, HT, HM, HN , HU, HK, IE, IS, IN,,ID, IQ, IR, IL, IT, CI, JM, JP, YE, you, JO,           |
-|                        |                                      | KY, CV, CM, KZ, KE, KG, KI, UM,,KW, HR, LA, LS, LV, LB, LR, LY, LI, LT, LU, MO, MK, MG, MW, MV, MY, ML, MT, IM,         |
-|                        |                                      | MA, MH , MQ, MR, MU, YT, MX, FM, MD, MC, MN, ME, MS, MZ, MM, NA, NR, NL,,NP, NI, NC, NZ, NE, NG, NU, MP, KP, NO,        |
-|                        |                                      | NF, UG, UA, UZ, OM, AT, TL, PK, PW, PS, PA, PG, PY, PE, PN, PL, PT, PR, QA, RE , RO, RU, RW, BL, KN, LC, PM, VC,        |
-|                        |                                      | SB, WS, SM, SA, ST, SN, RS, SC, SL, SG, SH, MF, SX, SI, SK, SD, SO, ES, SJ, LK, SR, SZ, SY, TJ, TW, TZ, TH, TG, TK,     |
-|                        |                                      | TO, TT, TD, CZ, TN, TR, TM, TC, TV ,,UY, VU, VA, VE, AE, US, GB, VN, WF, EH, BY, ZM, ZW, ZA, GS, KR, SS, SE, CH         |
-| `houseNumber`          | House number of the address          | Optional                                                                                                                |
-|                        |                                      | Has a maximum length of 100 characters.                                                                                 |
-|                        |                                      | Note: In the case of card payment at Worldline, this field is shortened to a maximum of 50 characters.                  |
-| `houseNumberAddition`  | House number addition of the address | Optional                                                                                                                |
-|                        |                                      | Has a maximum length of 6 characters                                                                                    |
+| Field                 | Description                          | Rules                                                                                                               |
+|-----------------------|--------------------------------------|---------------------------------------------------------------------------------------------------------------------|
+| `firstName`           | customer's name                      | Required                                                                                                            |
+|                       |                                      | Has a maximum length of 50 Characters                                                                               |
+| `middleName`          | customer's middle name               | Optional                                                                                                            |
+|                       |                                      | Has a maximum length of 20 Characters                                                                               |
+| `lastName`            | Last name of the customer            | Required                                                                                                            |
+|                       |                                      | Has a maximum length of 50 Characters                                                                               |
+| `street`              | Street name of the address           | Required                                                                                                            |
+|                       |                                      | Has a maximum length of 100 Characters.                                                                             |
+|                       |                                      | Note: In the case of card payment at Worldline, this field is shortened to a maximum of 50 characters.              |
+| `postalCode`          | Postal Code of the address           | Required                                                                                                            |
+|                       |                                      | Must match the ZIP/Postal code format of the selected CountryCode                                                   |
+| `city`                | City of Address                      | Required                                                                                                            |
+|                       |                                      | Has a maximum length of 40 Characters                                                                               |
+| `countryCode`         | Country Code of Address              | Required                                                                                                            |
+|                       |                                      | Must be one of the following values:                                                                                |
+|                       |                                      | AF, AX,AL, DZ, VI, AS, AD, AO, AI, AQ, AG, AR, AM, AW, AU, AZ, BS, BH, BD, BB, BE,,BZ, BJ, BM, BT, BO, BQ,          |
+|                       |                                      | BA, BW, BV, BR, VG, IO, BN, BG, BF, BI, KH, CA, CF, CL, CN, CX, CC, CO, KM , CG, CD, CK, CR, CU, CW, CY, DK,        |
+|                       |                                      | DJ, DM, DO, DE, EC,,EG, SV, GQ, ER, EE, ET, FO, FK, FJ, PH, FI, FR, TF, GF, PF, GA, GM, GE, GH,,GI, GD, GR,         |
+|                       |                                      | GL, GP, GU, GT, GG, GN, GW, GY, HT, HM, HN , HU, HK, IE, IS, IN,,ID, IQ, IR, IL, IT, CI, JM, JP, YE, you, JO,       |
+|                       |                                      | KY, CV, CM, KZ, KE, KG, KI, UM,,KW, HR, LA, LS, LV, LB, LR, LY, LI, LT, LU, MO, MK, MG, MW, MV, MY, ML, MT, IM,     |
+|                       |                                      | MA, MH , MQ, MR, MU, YT, MX, FM, MD, MC, MN, ME, MS, MZ, MM, NA, NR, NL,,NP, NI, NC, NZ, NE, NG, NU, MP, KP, NO,    |
+|                       |                                      | NF, UG, UA, UZ, OM, AT, TL, PK, PW, PS, PA, PG, PY, PE, PN, PL, PT, PR, QA, RE , RO, RU, RW, BL, KN, LC, PM, VC,    |
+|                       |                                      | SB, WS, SM, SA, ST, SN, RS, SC, SL, SG, SH, MF, SX, SI, SK, SD, SO, ES, SJ, LK, SR, SZ, SY, TJ, TW, TZ, TH, TG, TK, |
+|                       |                                      | TO, TT, TD, CZ, TN, TR, TM, TC, TV ,,UY, VU, VA, VE, AE, US, GB, VN, WF, EH, BY, ZM, ZW, ZA, GS, KR, SS, SE, CH     |
+| `houseNumber`         | House number of the address          | Optional                                                                                                            |
+|                       |                                      | Has a maximum length of 100 characters.                                                                             |
+|                       |                                      | Note: In the case of card payment at Worldline, this field is shortened to a maximum of 50 characters.              |
+| `houseNumberAddition` | House number addition of the address | Optional                                                                                                            |
+|                       |                                      | Has a maximum length of 6 characters                                                                                |
 
 The supported ZIP code formats are as follows. The remaining country codes only have a maximum length of 10 and are indicated in the table below as 'Other'.
 
@@ -513,51 +520,51 @@ The supported ZIP code formats are as follows. The remaining country codes only 
 
 **CustomerInformation**
 
-| Field             | Description                            | Rules                                                                   |
-|------------------ | -------------------------------------- | ------------------------------------------------------------------------|
-| `emailAddress`    | The email address of the customer      | Optional                                                                |
-|                   |                                        | Must be a valid email address                                           |
-|                   |                                        | Has a maximum length of 45 characters.                                  |
-| `dateOfBirth`     | The date of birth of the customer      | Optional                                                                |
-|                   |                                        | Must be in the format: DD-MM-YYYY                                       |
-| `gender`          | customer Sex                           | Optional                                                                |
-|                   |                                        | Must be one of the following values: M, F                               |
-| `initials`        | customer Initials                      | Optional                                                                |
-|                   |                                        | May consist only of alphabet characters                                 |
-|                   |                                        | Has a maximum length of 256 characters.                                 |
-| `telephoneNumber` | The telephone number of the customer   | Optional                                                                |
-|                   |                                        | May consist of numbers and alphabet characters                          |
-|                   |                                        | Has a maximum length of 31 characters.                                  |
-| `fullName`        | The full name of the customer          | Optional                                                                |
-|                   |                                        | Has a maximum length of 128 characters.                                 |
-|                   |                                        | Consult [this section](#customer-name-dashboard) for more information.  |
+| Field             | Description                          | Rules                                                                  |
+|-------------------|--------------------------------------|------------------------------------------------------------------------|
+| `emailAddress`    | The email address of the customer    | Optional                                                               |
+|                   |                                      | Must be a valid email address                                          |
+|                   |                                      | Has a maximum length of 45 characters.                                 |
+| `dateOfBirth`     | The date of birth of the customer    | Optional                                                               |
+|                   |                                      | Must be in the format: DD-MM-YYYY                                      |
+| `gender`          | customer Sex                         | Optional                                                               |
+|                   |                                      | Must be one of the following values: M, F                              |
+| `initials`        | customer Initials                    | Optional                                                               |
+|                   |                                      | May consist only of alphabet characters                                |
+|                   |                                      | Has a maximum length of 256 characters.                                |
+| `telephoneNumber` | The telephone number of the customer | Optional                                                               |
+|                   |                                      | May consist of numbers and alphabet characters                         |
+|                   |                                      | Has a maximum length of 31 characters.                                 |
+| `fullName`        | The full name of the customer        | Optional                                                               |
+|                   |                                      | Has a maximum length of 128 characters.                                |
+|                   |                                      | Consult [this section](#customer-name-dashboard) for more information. |
 
 **OrderItem**
 
-| Field         | Description                                    | Rules                                                              |
-|-------------- | ---------------------------------------------- | ------------------------------------------------------------------ |
-| `id`          | The ID of the item                             | Optional                                                           |
-|               |                                                | Has a maximum length of 25 Characters                              |
-| `name`        | Name of the item                               | Required                                                           |
-|               |                                                | May consist only of alphabet characters                            |
-|               |                                                | Has a maximum length of 50 Characters                              |
-| `description` | A description of the item                      | Optional                                                           |
-|               |                                                | Has a maximum length of 100 Characters                             |
-| `quantity`    | Number of copies                               | Required                                                           |
-|               |                                                | Must be a natural number greater than 0                            |
-| `amount`      | The amount per piece in cents, including VAT   | Should not be null                                                 |
-| `tax`         | VAT per piece in cents                         | Optional                                                           |
-| `category`    | Category of this item                          | Should not be null                                                 |
-|               |                                                | Must be one of the following values:                               |
-|               |                                                | DIGITAL, PHYSICAL                                                  |
-| `vatCategory` | VAT Category of the item                       | Optional                                                           |
-|               |                                                | Must be one of the following values:                               |
-|               |                                                | The values refer to the different rates used in the Netherlands:   |
-|               |                                                | 1, 2, 3, 4                                                         |
-|               |                                                | 1 = high 21%                                                       |
-|               |                                                | 2 = low (9%)                                                       |
-|               |                                                | 3 = zero (0%)                                                      |
-|               |                                                | 4 = none (exempt from VAT)                                         |
+| Field         | Description                                  | Rules                                                            |
+|---------------|----------------------------------------------|------------------------------------------------------------------|
+| `id`          | The ID of the item                           | Optional                                                         |
+|               |                                              | Has a maximum length of 25 Characters                            |
+| `name`        | Name of the item                             | Required                                                         |
+|               |                                              | May consist only of alphabet characters                          |
+|               |                                              | Has a maximum length of 50 Characters                            |
+| `description` | A description of the item                    | Optional                                                         |
+|               |                                              | Has a maximum length of 100 Characters                           |
+| `quantity`    | Number of copies                             | Required                                                         |
+|               |                                              | Must be a natural number greater than 0                          |
+| `amount`      | The amount per piece in cents, including VAT | Should not be null                                               |
+| `tax`         | VAT per piece in cents                       | Optional                                                         |
+| `category`    | Category of this item                        | Should not be null                                               |
+|               |                                              | Must be one of the following values:                             |
+|               |                                              | DIGITAL, PHYSICAL                                                |
+| `vatCategory` | VAT Category of the item                     | Optional                                                         |
+|               |                                              | Must be one of the following values:                             |
+|               |                                              | The values refer to the different rates used in the Netherlands: |
+|               |                                              | 1, 2, 3, 4                                                       |
+|               |                                              | 1 = high 21%                                                     |
+|               |                                              | 2 = low (9%)                                                     |
+|               |                                              | 3 = zero (0%)                                                    |
+|               |                                              | 4 = none (exempt from VAT)                                       |
 
 The quantity describes how much the customer wants to have the of a particular product, for example 2 apples,
 or 3 pears. The amount indicates how much one product costs, so 1 apple costs €1.50, or 1 pear costs €1.75, and
@@ -726,7 +733,7 @@ foreach (var orderItem in orderItems)
 Money orderAmount = Money.FromEuros(Currency.EUR, totalAmount);
 ```
 
-Should there be an incorrect order which was sent and Rabo OmniKassa can repair it, then an attempt is made to correct the order by removing or shortening any data.
+Should there be an incorrect order which was sent and Rabo Smart Pay can repair it, then an attempt is made to correct the order by removing or shortening any data.
 This applies only in extreme cases and may result in specific payment methods not being available for this order.
 
 **Required fields per payment method**
@@ -745,32 +752,31 @@ The table below shows what data this is, broken down by payment method:
 | MasterCard     | Although not mandatory, we advise you to include the delivery address (or, if not known, the billing address) in the order for additional certainty about a successful payment. |
 | V PAY          | Although not mandatory, we advise you to include the delivery address (or, if not known, the billing address) in the order for additional certainty about a successful payment. |
 | Maestro        | Although not mandatory, we advise you to include the delivery address (or, if not known, the billing address) in the order for additional certainty about a successful payment. |
-| Sofort         | No additional information is required for this payment method.                                                                                                                                                                                |
 
 If for a payment method the mandatory additional information is missing in the order then the customer cannot use this method to fulfill the payment.
-If the payment method was included in the order using the PaymentBrand field, the announcement will be refused by Rabo OmniKassa.
+If the payment method was included in the order using the PaymentBrand field, the announcement will be refused by Rabo Smart Pay.
 
 <a name="creating-endpoint"></a>
 #### Creating endpoint
-Besides an order is also an instance of an `Endpoint` needed. With this `Endpoint` it is possible to perform all calls towards the Rabo OmniKassa.
+Besides an order is also an instance of an `Endpoint` needed. With this `Endpoint` it is possible to perform all calls towards the Rabo Smart Pay.
 An `Endpoint` is instantiated with three parameters: an Url, A _Base64_ encoded signing key, and a `TokenProvider` implementation.
 
 The URL determines whether the production environment or the sandbox environment is linked:
 
-| Environment   | Description                                                                                                                                                              |
-|-------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Production    | In this environment actual payments are done that are depreciated from the customer's account and transferred to the owner of the webshop.                               |
-| Sandbox       | This is a test environment. Payments in this environment are simulated and are only intended to test the connections with your webshop.                                  |
+| Environment | Description                                                                                                                                |
+|-------------|--------------------------------------------------------------------------------------------------------------------------------------------|
+| Production  | In this environment actual payments are done that are depreciated from the customer's account and transferred to the owner of the webshop. |
+| Sandbox     | This is a test environment. Payments in this environment are simulated and are only intended to test the connections with your webshop.    |
 
-The environments can be configured in Rabo OmniKassa Dashboard - for example, which payment methods should be offered.
+The environments can be configured in Rabo Smart Pay Dashboard - for example, which payment methods should be offered.
 The signing key is a secret key that can be found in the Rabo OmniDashboard. This signing key is _BASE64_ encoded.
-The signing key is used by Rabo Omnikassa to cryptographically sign the data in the `merchantReturnUrl` as well as the data in the messages that are sent to the webhook.
-The webshop must use this information to verify the authenticity of the message. This is done automatically by the SDK..
+The signing key is used by Rabo Smart Pay to cryptographically sign the data in the `merchantReturnUrl` as well as the data in the messages that are sent to the webhook.
+The webshop must use this information to verify the authenticity of the message. This is done automatically by the SDK.
 
 Finally, we need the implementation of the `TokenProvider`. This implementation is responsible for providing and storing token information.
 For example, an implementation can store the data in a database, on a file system, or in memory.
 The aim is that your `TokenProvider` provides a refresh token by default -it must be available in the `TokenProvider` before the first call is made.
-This token can be found in the Rabo OmniKassa Dashboard and is a unique token with long term validity (typically a few years). It is used to request an access token from Rabo Omnikassa.
+This token can be found in the Rabo Smart Pay Dashboard and is a unique token with long term validity (typically a few years). It is used to request an access token from Rabo Smart Pay.
 The access token is valid for a limited amount of time (typically one hour) and must be used in all subsequent calls. This token is delivered to the `TokenProvider` for storage and also for reading.
 
 **PHP**
@@ -918,20 +924,20 @@ To link to the sandbox environment, the constant `Environment.SANDBOX` must be u
 
 <a name="sending-order"></a>
 #### Sending order
-With this `Endpoint` we can announce the order. As a response to the order announcement Rabo OmniKassa returns a unique ID to identify the order as well as a URL to the payment pages. The customer must be redirected to this URL in order to pay for the order.
+With this `Endpoint` we can announce the order. As a response to the order announcement Rabo Smart Pay returns a unique ID to identify the order as well as a URL to the payment pages. The customer must be redirected to this URL in order to pay for the order.
 
 **PHP**
 ```php
 $response = $endpoint->announce($order);
 
-//Redirect user to Rabo OmniKassa
+//Redirect user to Rabo Smart Pay
 header('Location: ' . $response->getRedirectUrl());
 ```
 
 **Java**
 ```java
 MerchantOrderResponse response = endpoint.announce(order);
-// Redirect user to Rabo OmniKassa
+// Redirect user to Rabo Smart Pay
 return "redirect:" + response.getRedirectUrl();
 ```
 
@@ -958,21 +964,21 @@ The object of type `MerchantOrderResponse` as returned by the Java SDK contains 
 | Field            | Description                                                                                                                                                                                    |
 |------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | redirectUrl      | The URL to which the customer must be redirected to in order to pay for the order.                                                                                                             |
-| omnikassaOrderId | A unique ID that Rabo OmniKassa will assign to the order. This ID is needed to link the payment result as returned by the webhook notification mechanism to the correct order (see [Receive updates about orders](#receive-updates-about-orders)). |
+| omnikassaOrderId | A unique ID that Rabo Smart Pay will assign to the order. This ID is needed to link the payment result as returned by the webhook notification mechanism to the correct order (see [Receive updates about orders](#receive-updates-about-orders)). |
 
 
 <a name="payment-brand-parameters"></a>
 #### Improve customer experience using payment brand parameters
-The default behavior for an online payment is to redirect the customer to the payment pages of Rabo OmniKassa after the
-order has been announced. These are Rabobank-branded pages hosted by Rabo OmniKassa and they guide the customer through
+The default behavior for an online payment is to redirect the customer to the payment pages of Rabo Smart Pay after the
+order has been announced. These pages are hosted by Rabo Smart Pay, and they guide the customer through
 the payment process by presenting a list of payment brands and to ask the customer for additional details, depending on
-the selected payment brand. For an improved online payment experience Rabo OmniKassa provides means to skip some of
+the selected payment brand. For an improved online payment experience Rabo Smart Pay provides means to skip some of
 these steps by letting the webshop supply payment brand information. For example, in the checkout process the webshop
 can already provide an option for the customer to select iDEAL as a payment brand as well as the bank. In this section
 we describe how the SDK facilitates this improved experience.
 
 The first improvement is to allow the customer to select the payment brand in the webshop. For this the SDK provides
-functionality to retrieve the payment brands that are currently configured and active within Rabo OmniKassa for the web
+functionality to retrieve the payment brands that are currently configured and active within Rabo Smart Pay for the web
 shop. For a technical description on how to obtain the brands see
 [Request available payment brands](#request-available-payment-brands). The returned payment brand information can then
 be used for example to populate a select box in the webshop.
@@ -986,7 +992,7 @@ announcement:
 
 We explain the payment method and the force options in more detail. When the payment method is `IDEAL` and the Force
 option `FORCE_ONCE` has been specified, then the customer will immediately start an iDEAL payment upon arrival at
-Rabo OmniKassa and thus arrives on the bank selecting screen. The customer then has the option to finalize the payment
+Rabo Smart Pay and thus arrives on the bank selecting screen. The customer then has the option to finalize the payment
 or to choose another payment method by clicking on `<Choose Other Payment method>`. With the `FORCE_ALWAYS` it is not
 possible for the customer to choose another payment method. The only options are to approve or cancel the payment after
 selecting the bank.
@@ -1016,12 +1022,12 @@ In this section we specify how to include the name of the customer in the order 
 in the Omni Dashboard. There are two ways on how to achieve this.
 
 1. The first and preferred approach is to specify the field `fullName` of the `CustomerInformation` structure.
-2. If this field is not set then OmniKassa will use the name as specified in the shipping details (if included) or billing details (if included), where the shipping details will take precedence.
+2. If this field is not set then Rabo Smart Pay will use the name as specified in the shipping details (if included) or billing details (if included), where the shipping details will take precedence.
 
 <a name="customer-pays-order"></a>
 ### Customer pays order
 
-When redirected to the payment pages of Rabo Omnikassa the customer can pay the order. When this is done, the customer is automatically redirected back to the webshop via the `merchantReturnUrl` specified in the order announcement.
+When redirected to the payment pages of Rabo Smart Pay the customer can pay the order. When this is done, the customer is automatically redirected back to the webshop via the `merchantReturnUrl` specified in the order announcement.
 With this `URL` some query parameters will be included that relate to the order, namely:
 
 | Parameter   | Description                                                                     |
@@ -1091,11 +1097,11 @@ If the answer is invalid, it is advisable to redirect the customer to an error p
 At a later stage, the actual status of the order can be requested by means of notifications.
 
 <a name="receive-updates-about-orders"></a>
-### Receive updates about orders
+### Receive order updates
 
- All the status transitions of an order are tracked by the Rabo OmniKassa so that they can be offered to the webshop with the help of notifications.
- The Rabo OmniKassa does this by sending a notification to the `webhookUrl` through a `Post` request with the notification as JSON.
- The `webhookUrl` can be configured in the dashboard of Rabo OmniKassa.
+ All the status transitions of an order are tracked by the Rabo Smart Pay so that they can be offered to the webshop with the help of notifications.
+ The Rabo Smart Pay does this by sending a notification to the `webhookUrl` through a `Post` request with the notification as JSON.
+ The `webhookUrl` can be configured in the dashboard of Rabo Smart Pay.
 
  A notification looks like this:
 
@@ -1143,7 +1149,7 @@ ResponseEntity webhook(@RequestBody ApiNotification apiNotification) throws Rabo
     MerchantOrderStatusResponse merchantOrderStatusResponse;
     do {
         merchantOrderStatusResponse = endpoint.retrieveAnnouncement(apiNotification);
-        for (MerchantOrderResult result : merchantOrderStatusResponse:getOrderResults()) {
+        for (MerchantOrderResult result : merchantOrderStatusResponse.getOrderResults()) {
             // Update the order status using the properties in result
         }
     } while (merchantOrderStatusResponse.moreOrderResultsAvailable());
@@ -1177,13 +1183,13 @@ public ActionResult Webhook(ApiNotification notification)
 ```
 
 This step also verifies the signature of the notification.
-If the validation fails, for example when a different signing key is active in the dashboard, then the order data will not be retrieved. Rabo Omnikassa will send a new notification at a later time.
-More information regarding this process can be found in the User Manual of Rabo OmniKassa.
+If the validation fails, for example when a different signing key is active in the dashboard, then the order data will not be retrieved. Rabo Smart Pay will send a new notification at a later time.
+More information regarding this process can be found in the User Manual of Rabo Smart Pay.
 
 The `MerchantOrderStatusResponse` object returned by the call to the `retrieveAnnouncement` method consists of the following properties:
 
 | Field                       | Description                                                                                                                                                                                                                                                                                                                                                                                                                                   |
-|---------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+|-----------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `orderResults`              | This is an array consisting of 0 or more objects of type MerchantOrderResult. The result of an order is included in each object. The composition of this item is further explained in further detail in this section.                                                                                                                                                                                                                         |
 | `moreOrderResultsAvailable` | When calling `retrieveAnnouncement`, the data of up to 100 objects is returned in OrderResults, to keep the volume of the response manageable. If more than 100 orders have been processed, the MoreOrderResultsAvailable field has a value of true and a new call to RetrieveAnnouncement can query the results of the next set of up to 100 orders. This process can be repeated as long as moreOrderResultsAvailable has a value of false. |
 
@@ -1192,14 +1198,14 @@ As shown above, an object of type `MerchantOrderResult` contains the data of a s
 | Field                 | Description                                                                                                                                                                                        |
 |-----------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `merchantOrderId`     | The ID of the order as specified by the webshop when the order was announced.                                                                                                                      |
-| `omniKassaOrderId`    | The unique ID assigned by OmniKassa to the order at the time of the announcement.                                                                                                                  |
+| `omniKassaOrderId`    | The unique ID assigned by Smart Pay to the order at the time of the announcement.                                                                                                                  |
 | `poiId`               | The unique ID that identifies the webshop.                                                                                                                                                         |
 | `orderStatus`         | The status of the order. The following values are possible:                                                                                                                                        |
 |                       | COMPLETED: The full amount of the order is paid by the customer.                                                                                                                                   |
 |                       | CANCELLED: The order was canceled by the customer.                                                                                                                                                 |
 |                       | EXPIRED: The order has expired without the customer having paid.                                                                                                                                   |
 | `orderStatusDateTime` | The most recent timestamp of the order.                                                                                                                                                            |
-|                       | If there was no payment attempt, this field will contain the time the order was announced at OmniKassa.                                                                                            |
+|                       | If there was no payment attempt, this field will contain the time the order was announced at Smart Pay.                                                                                            |
 |                       | Otherwise, this field contains the time of the most recent payment attempt.                                                                                                                        |
 | `errorCode`           | This field is reserved for future use. Currently, this field does not contain a value.                                                                                                             |
 | `paidAmount`          | The amount paid by the customer. In case of COMPLETED, it is equal to the order amount as given by the webshop at the announcement. When CANCELLED and EXPIRED, this field will have a value of 0. |
@@ -1208,32 +1214,86 @@ As shown above, an object of type `MerchantOrderResult` contains the data of a s
 
 As shown above, an object of type `Transaction` contains the data of a single transaction. The following table explains the fields of this item.
 
-| Field             | Description                                                                                                                             |
-|-------------------|-----------------------------------------------------------------------------------------------------------------------------------------|
-| `id`              | The unique ID assigned by OmniKassa to the transaction at the time it was created. Needed for refunds                                   |
-| `paymentBrand`    | The paymentbrand of this transaction. Can be one of the following: IDEAL, PAYPAL, MASTERCARD, VISA, BANCONTACT, MAESTRO, V_PAY, SOFORT. |
-| `type`            | The type of transaction, can be AUTHORIZE or PAYMENT                                                                                    |
-| `status`          | The status of the transaction. The following values are possible:                                                                       |
-|                   | SUCCESS: The transaction was successful.                                                                                                |
-|                   | ACCEPTED : The transaction was accepted by the paymentprovider                                                                          |
-|                   | CANCELLED: The transaction was canceled by the customer.                                                                                |
-|                   | EXPIRED: The transaction has expired without the customer having paid.                                                                  |
-|                   | FAILURE: The transaction has failed.                                                                                                    |
-| `amount`          | The amount the consumer was charged in this transaction.                                                                                |
-| `confirmedAmount` | The amount the consumer paid in this transaction.                                                                                       |
-| `startTime`       | The timestamp of when this transaction was started                                                                                      |
-| `lastUpdateTime`  | The most recent timestamp of the last update of the transaction.                                                                        |
+| Field             | Description                                                                                                                     |
+|-------------------|---------------------------------------------------------------------------------------------------------------------------------|
+| `id`              | The unique ID assigned by Smart Pay to the transaction at the time it was created. Needed for refunds                           |
+| `paymentBrand`    | The paymentbrand of this transaction. Can be one of the following: IDEAL, PAYPAL, MASTERCARD, VISA, BANCONTACT, MAESTRO, V_PAY. |
+| `type`            | The type of transaction, can be AUTHORIZE or PAYMENT                                                                            |
+| `status`          | The status of the transaction. The following values are possible:                                                               |
+|                   | ACCEPTED : The transaction was accepted by the paymentprovider                                                                  |
+|                   | CANCELLED: The transaction was canceled by the customer.                                                                        |
+|                   | EXPIRED: The transaction has expired without the customer having paid.                                                          |
+|                   | FAILURE: The transaction has failed.                                                                                            |
+| `amount`          | The amount the consumer was charged in this transaction.                                                                        |
+| `confirmedAmount` | The amount the consumer paid in this transaction.                                                                               |
+| `startTime`       | The timestamp of when this transaction was started                                                                              |
+| `lastUpdateTime`  | The most recent timestamp of the last update of the transaction.                                                                |
+
+<a name="request-order-status"></a>
+### Request order status
+
+In addition to receiving notifications about the status of an order, it is also possible to request the status of an order at any time.
+
+> Order statuses are guaranteed to remain available for 24 hours after the order reaches a final status.
+> 
+> The endpoint should only be used in rare cases where a webhook notification has not been received. 
+For monitoring status changes, it is mandatory to use the webhook mechanism provided. 
+Polling this endpoint for status updates is explicitly prohibited.
+>
+> Rabo Smart Pay reserves the right to rate limit or disable this endpoint entirely if it is used in a manner inconsistent with its intended purpose.
+>
+> Please note: This endpoint is currently unavailable in the SANDBOX environment.
+
+Given an `Endpoint` ([Creating endpoint](#creating-endpoint)) and an omnikassaOrderId, we can retrieve the details of an order as follows:
+
+**Java**
+```java
+OrderStatusResponse orderStatusResponse = endpoint.getOrderStatus(omnikassaOrderId);
+```
+
+The object returned by the call to the `getOrderStatus` method consists contains an `OrderStatusResult` object with the following properties:
+
+| Field             | Description                                                                                                                                                       |
+|-------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `merchantOrderId` | The ID of the order as specified by the webshop when the order was announced.                                                                                     |
+| `id`              | The unique ID assigned by Smart Pay to the order at the time of the announcement.                                                                                 |
+| `status`          | The status of the order. The following values are possible:                                                                                                       |
+|                   | IN_PROGRESS: Payment of order is yet to be finalized.                                                                                                             |
+|                   | COMPLETED: The full amount of the order is paid by the customer.                                                                                                  |
+|                   | CANCELLED: The order was canceled by the customer.                                                                                                                |
+|                   | EXPIRED: The order has expired without the customer having paid.                                                                                                  |
+| `totalAmount`     | The original order amount as specified by the webshop when announcing the order.                                                                                  |
+| `transactions`    | A list of transactions with type AUTHORIZE and PAYMENT of type Transaction.  The composition of this item is further explained in further detail in this section. |
+
+An object of type `TransactionStatusInfo` contains the data of a single transaction. The following table explains the fields of this item.
+
+| Field           | Description                                                                                                                     |
+|-----------------|---------------------------------------------------------------------------------------------------------------------------------|
+| `id`            | The unique ID assigned by Smart Pay to the transaction at the time it was created. Needed for refunds                           |
+| `paymentBrand`  | The paymentbrand of this transaction. Can be one of the following: IDEAL, PAYPAL, MASTERCARD, VISA, BANCONTACT, MAESTRO, V_PAY. |
+| `type`          | The type of transaction, can be AUTHORIZE or PAYMENT                                                                            |
+| `status`        | The status of the transaction. The following values are possible:                                                               |
+|                 | NEW: The transaction is created at Smart Pay, but the final status is not yet known.                                            |
+|                 | OPEN: The transaction is created at a third party, but the final status is not yet known.                                       |
+|                 | SUCCESS: The transaction has succeeded.                                                                                         |
+|                 | ACCEPTED : The transaction was accepted by the paymentprovider                                                                  |
+|                 | CANCELLED: The transaction was canceled by the customer.                                                                        |
+|                 | EXPIRED: The transaction has expired without the customer having paid.                                                          |
+|                 | FAILURE: The transaction has failed.                                                                                            |
+| `amount`        | The amount the consumer was charged in this transaction.                                                                        |
+| `createdAt`     | The timestamp of when this transaction was started                                                                              |
+| `lastUpdatedAt` | The timestamp of the latest update of the transaction.                                                                          |
 
 <a name="request-available-payment-brands"></a>
 ### Request available payment brands
 
-The SDK also provides functionality to look up all payment brands of a webshop as configured in the dashboard of Rabo OmniKassa.
+The SDK also provides functionality to look up all payment brands of a webshop as configured in the dashboard of Rabo Smart Pay.
 This information can be used to determine which payment brands are available to the customer.
 It is typically used in conjunction with the `paymentBrand` and `paymentBrandForce` fields of an order announcement ([Order announcement](#order-announcement)).
 
 **Important:** The payment brands should not be requested real-time for each payment, but instead be cached locally and updated at certain time intervals (e.g. every few hours).
 
-Given an `Endpoint` ([Creating endpoint](#creating-endpoint)) we can look up the payment brands as followings.
+Given an `Endpoint` ([Creating endpoint](#creating-endpoint)) we can look up the payment brands as follows:
 
 **PHP**
 ```php
@@ -1290,8 +1350,7 @@ Each element of this list is an object of type `PaymentBrandInfo` containing the
 |          | BANCONTACT                                                                                                                |
 |          | MAESTRO                                                                                                                   |
 |          | V_PAY                                                                                                                     |
-|          | SOFORT                                                                                                                    |
-|          | Note: Keep in mind that other values can be expected as well whenever Rabo OmniKassa is extended with new payment brands. |
+|          | Note: Keep in mind that other values can be expected as well whenever Rabo Smart Pay is extended with new payment brands. |
 | `active` | A boolean indicating if the payment brand is active (true) or inactive (false).                                           |
 
 Only the payment brands that are returned in this list and are active can be used for payments.
@@ -1299,13 +1358,13 @@ Only the payment brands that are returned in this list and are active can be use
 <a name="request-available-ideal-issuers"></a>
 ### Request available iDEAL issuers
 In this section we explain how to obtain the iDEAL issuers. This functionality is typically used to directly start an
-iDEAL transaction from the webshop without first redirecting the customer to the payment pages of Rabo OmniKassa to
+iDEAL transaction from the webshop without first redirecting the customer to the payment pages of Rabo Smart Pay to
 select iDEAL as the payment brand and then the issuer.
 
 **Important:** The list of iDEAL issuers should not be requested real-time for each payment, but instead be cached
 locally and updated daily.
 
-Given an `Endpoint` ([Creating endpoint](#creating-endpoint)) we can obtain this list as follows.
+Given an `Endpoint` ([Creating endpoint](#creating-endpoint)) we can obtain this list as follows:
 
 **PHP**
 ```php
@@ -1346,7 +1405,7 @@ This class provides a method `getIssuers()` that returns a list of all available
 Each element of this list is an object containing the details of a single iDEAL issuer as shown in the following table.
 
 | Field          | Description                                                                                                                                                                                                                                                                      |
-|--------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+|----------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `id`           | A string of at most 11 characters containing the unique ID of the iDEAL issuer. This ID must be used in the `paymentBrandMetaData` field of an order to immediately start an iDEAL transaction for this issuer.                                                                  |
 | `name`         | The name of the Issuer as should be presented to the customer when rendering the list of iDEAL issuers. This field is a string of at most 35 characters.                                                                                                                         |
 | `logos`        | A list of objects containing logo details of the issuer. This information can be used to render the logo of the issuer in the webshop. See table below for more details on the logo properties.                                                                                  |
@@ -1355,7 +1414,7 @@ Each element of this list is an object containing the details of a single iDEAL 
 The table below contains the properties of an iDEAL issuer logo.
 
 | Field      | Description                                                                                |
-|----------- | -------------------------------------------------------------------------------------------|
+|------------|--------------------------------------------------------------------------------------------|
 | `url`      | A publicly accessible URL where you can download the logo of the issuer.                   |
 | `mimeType` | The mime type (also referred to as the media type) of the logo. This always an image type. |
 
@@ -1369,6 +1428,7 @@ The Refund API contains three endpoints for:
 * Retrieving the refundable amount of a transaction.
 Additionally, the webhook mechanism now also exposes the transactions belonging to an order. A transaction ID from the transaction is needed to initiate or request the status of a refund.
 
+<a name="initiate-refund-request"></a>
 ### Initiate Refund request
 
 In this section we explain how to initiate a refund request.
@@ -1392,7 +1452,7 @@ import nl.rabobank.gict.payments_savings.omnikassa_frontend.sdk.model.Money;
 import nl.rabobank.gict.payments_savings.omnikassa_frontend.sdk.model.request.InitiateRefundRequest;
 import nl.rabobank.gict.payments_savings.omnikassa_frontend.sdk.model.response.RefundDetailsResponse;
 
-Money money = Money.fromEuros(EUR, BigDecimal.valueOf(Double.parseDouble(amount));
+Money money = Money.fromEuros(EUR, BigDecimal.valueOf(Double.parseDouble(amount)));
 InitiateRefundRequest refundRequest = new InitiateRefundRequest(money, description,StringUtils.isEmpty(vatCategory) ? null : VatCategory.valueOf(vatCategory));
 RefundDetailsResponse response = endpoint.initiateRefundTransaction(refundRequest, UUID.fromString(transactionId), UUID.randomUUID());
 ```
@@ -1407,11 +1467,12 @@ var refundRequest = new InitiateRefundRequest(amount, description, vatCategory);
 webShopModel.RefundDetailsResponse = endpoint.InitiateRefundTransaction(refundRequest, transactionId, Guid.NewGuid());
 ```
 
+<a name="retrieve-refund-details"></a>
 ### Retrieve refund details
 
 In this section we explain how retrieve the details of a refund
 
-Given an `Endpoint` ([Creating endpoint](#creating-endpoint)), a transactionId and a refundId we can obtain the details of a refund as follows.
+Given an `Endpoint` ([Creating endpoint](#creating-endpoint)), a transactionId and a refundId we can obtain the details of a refund as follows:
 
 **PHP**
 ```php
@@ -1435,11 +1496,12 @@ var refundId = Guid.Parse(refundIdStr);
 var RefundDetailsResponse = endpoint.FetchRefundTransaction(transactionId, refundId);
 ```
 
+<a name="retrieve-refundable-details"></a>
 ### Retrieve refundable details
 
 In this section we explain how retrieve the details of a transaction, refundableMoney and expirydate, you need to start a refund.
 
-Given an `Endpoint` ([Creating endpoint](#creating-endpoint)) and a transactionId we can obtain the details of a transaction as follows.
+Given an `Endpoint` ([Creating endpoint](#creating-endpoint)) and a transactionId we can obtain the details of a transaction as follows:
 
 **PHP**
 ```php
