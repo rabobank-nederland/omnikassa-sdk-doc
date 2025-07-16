@@ -1057,7 +1057,7 @@ endpoint.deleteShopperPaymentDetails(shopperRef, id);
 | last4Digits | last 4 digits of the card                                                                            |
 | brand       | card brand, e.g. VISA                                                                                |
 | cardExpiry  | the expiry of the card. Will be format YYYY-MM                                                       |
-| tokenExpiry | the expiry of the token. Will be format YYYY-MM                                                      |
+| tokenExpiry | the expiry year and month of the token. Will be format YYYY-MM                                                      |
 | status      | status of saved card, can be `ACTIVE`,`INACTIVE`,`DELETED`,`SUSPENDED`                               |
 
 <a name="customer-name-dashboard"></a>
