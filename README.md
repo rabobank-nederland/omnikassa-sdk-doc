@@ -1047,7 +1047,7 @@ endpoint.deleteShopperPaymentDetails(shopperRef, id);
 
 | Fields          | Description                                   |
 |-----------------|-----------------------------------------------|
-| cardOnFileList  | List of `cardOnFile` saved by rabo smart pay  |
+| cardOnFileList  | List of `cardOnFile` entries saved by rabo smart pay  |
 
 **cardOnFile**
 
