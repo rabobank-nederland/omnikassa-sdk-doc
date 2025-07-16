@@ -1056,7 +1056,7 @@ endpoint.deleteShopperPaymentDetails(shopperRef, id);
 | id          | id of the card saved by smart pay, must be provided when the merchant wants to delete the saved card |
 | last4Digits | last 4 digits of the card                                                                            |
 | brand       | card brand, e.g. VISA                                                                                |
-| cardExpiry  | the expiry of the card. Will be format YYYY-MM                                                       |
+| cardExpiry  | the expiry year and month of the card. Will be format YYYY-MM                                                       |
 | tokenExpiry | the expiry year and month of the token. Will be format YYYY-MM                                                      |
 | status      | status of saved card, can be `ACTIVE`,`INACTIVE`,`DELETED`,`SUSPENDED`                               |
 
