@@ -1031,7 +1031,7 @@ customers come back to the same webshop using the same same credit card for chec
 This feature is enabled if:
 1. Webshop is configured via the merchant dashboard for the Cards on File feature;
 2. During order announcement, a `shopperRef` is provided and `emailAddress` of `customerInformation` is provided;
-3. The `paymentBrandMetaData` map has `enableCardOnFile` as `true`;
+3. The value of `paymentBrandMetaData.enableCardOnFile` is `true`;
 
 Merchants will be able to manage the saved credit cards on behave of customers if necessary.
 
