@@ -239,7 +239,9 @@ $order = MerchantOrder::createFrom([
     'paymentBrandForce' => PaymentBrandForce::FORCE_ONCE,
     'paymentBrandMetaData' => PaymentBrandMetaData::createFrom([
         'issuerId' => 'RABONL2U',
-    ])
+        'enableCardOnFile' => 'true',
+    ]),
+    'shopperRef' => 'reference-of-the-shopper'
 ]);
 ```
 
@@ -308,7 +310,8 @@ MerchantOrder order = new MerchantOrder.Builder()
     .withSkipHppResultPage(true)
     .withPaymentBrand(PaymentBrand.IDEAL)
     .withPaymentBrandForce(PaymentBrandForce.FORCE_ONCE)
-    .withPaymentBrandMetaData(Collections.singletonMap("issuerId", "RABONL2U"))
+    .withPaymentBrandMetaData(Map.of("issuerId", "RABONL2U", "enableCardOnFile", "true"))
+    .withShopperRef("reference-of-the-shopper")
     .build();
 ```
 
@@ -365,6 +368,7 @@ Address shippingDetails = new Address.Builder()
 
 Dictionary<string, string> paymentBrandMetaData = new Dictionary<string, string>();
 paymentBrandMetaData.Add("issuerId", "RABONL2U");
+paymentBrandMetaData.Add("enableCardOnFile", "true");
 
 MerchantOrder order = new MerchantOrder.Builder()
    .WithMerchantOrderId("ORDID123")
@@ -381,6 +385,7 @@ MerchantOrder order = new MerchantOrder.Builder()
    .WithPaymentBrand(PaymentBrand.IDEAL)
    .WithPaymentBrandForce(PaymentBrandForce.FORCE_ALWAYS)
    .WithPaymentBrandMetaData(paymentBrandMetaData)
+   .WithShopperRef("reference-of-the-shopper")
    .Build();
 ```
 
@@ -427,10 +432,11 @@ Below are all the fields with the name, a description, and the rules to which th
 | `billingDetails`                | The billing address of this order                                                                                     | Optional                                                                                                                                                                                                                                                                                         |
 | `initiatingParty`               | An ID identifying the party from which the order announcement was initiated                                           | Optional. This field must be left empty unless agreed otherwise with Rabobank                                                                                                                                                                                                                    |
 | `skipHppResultPage`             | Use this field to skip the hosted result page (also referred to as the success/thank you page) in the payment process | Optional                                                                                                                                                                                                                                                                                         |
+| `shopperRef`                    | This is the reference of the customer at merchant webshop, should be a uniq value at merchant webshop                 | Optional                                                                                                                                                                                                                                                                                         |
 
-For more information on how to use the `paymentBrand`, `paymentBrandForce`, `paymentBrandMetaData` and the
+For more information on how to use the `paymentBrand`, `paymentBrandForce`, `paymentBrandMetaData`, `shopperRef` and the
 `skipHppResultPage` please consult
-[Improve customer experience using payment brand parameters](#payment-brand-parameters).
+[Improve customer experience using payment brand parameters](#payment-brand-parameters) and [Allow customers to save credit cards at rabo smart pay](#allow-customers-to-save-credit-cards-at-rabo-smart-pay)
 
 **Money**
 
@@ -525,6 +531,7 @@ The supported ZIP code formats are as follows. The remaining country codes only 
 | `emailAddress`    | The email address of the customer    | Optional                                                               |
 |                   |                                      | Must be a valid email address                                          |
 |                   |                                      | Has a maximum length of 45 characters.                                 |
+|                   |                                      | This field is required when `enableCardOnFile` is true                 |
 | `dateOfBirth`     | The date of birth of the customer    | Optional                                                               |
 |                   |                                      | Must be in the format: DD-MM-YYYY                                      |
 | `gender`          | customer Sex                         | Optional                                                               |
@@ -1015,6 +1022,43 @@ A final optimization can be achieved by setting the `skipHppResultPage` field in
 authorizing the transaction in the iDEAL page of the selected bank, the customer will be immediately redirected back to
 the webshop. The success page (also referred to as the “Thank You” page) of the hosted payment pages will be skipped in
 this case.
+
+<a name="cards-on-file"></a>
+#### Allow customers to save credit cards at rabo smart pay
+Smart pay now allows customers to save their cards for a webshop, and this can speed up the checkout process when
+customers come back to the same webshop using the same same credit card for checkout.
+
+This feature is enabled if:
+1. Webshop is onboarded with Cards on File feature;
+2. During order announcement, a `shopperRef` is provided and `emailAddress` of `customerInformation` is provided;
+3. The `paymentBrandMetaData` map has `enableCardOnFile` as `true`;
+
+Merchants will be able to manage the saved credit cards on behave of customers if necessary.
+
+**Java**
+```java
+//Gate list of cards saved by customer
+ShopperPaymentDetailsResponse paymentDetailsResponse = endpoint.getShopperPaymentDetails(shopperRef);
+//Delete a saved card for a customer, id is the id of cardOnFile
+endpoint.deleteShopperPaymentDetails(shopperRef, id);
+```
+
+**ShopperPaymentDetailsResponse**
+
+| Fields          | Description                                   |
+|-----------------|-----------------------------------------------|
+| cardOnFileList  | List of `cardOnFile` saved by rabo smart pay  |
+
+**cardOnFile**
+
+| Fields      | Decription                                                                                           |
+|-------------|------------------------------------------------------------------------------------------------------|
+| id          | id of the card saved by smart pay, must be provided when the merchant wants to delete the saved card |
+| last4Digits | last 4 digits of the card                                                                            |
+| brand       | card brand, e.g. VISA                                                                                |
+| cardExpiry  | the expiry of the card. Will be format YYYY-MM                                                       |
+| tokenExpiry | the expiry of the token. Will be format YYYY-MM                                                      |
+| status      | status of saved card, can be `ACTIVE`,`INACTIVE`,`DELETED`,`SUSPENDED`                               |
 
 <a name="customer-name-dashboard"></a>
 ### How to expose the name of the customer in Omni Dashboard
