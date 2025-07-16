@@ -1037,7 +1037,7 @@ Merchants will be able to manage the saved credit cards on behave of customers i
 
 **Java**
 ```java
-//Gate list of cards saved by customer
+//Get a list of cards saved by customer
 ShopperPaymentDetailsResponse paymentDetailsResponse = endpoint.getShopperPaymentDetails(shopperRef);
 //Delete a saved card for a customer, id is the id of cardOnFile
 endpoint.deleteShopperPaymentDetails(shopperRef, id);
