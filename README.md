@@ -1029,7 +1029,7 @@ Smart pay now allows customers to save their cards for a webshop, and this can s
 customers come back to the same webshop using the same same credit card for checkout.
 
 This feature is enabled if:
-1. Webshop is onboarded with Cards on File feature;
+1. Webshop is configured via the merchant dashboard for the Cards on File feature;
 2. During order announcement, a `shopperRef` is provided and `emailAddress` of `customerInformation` is provided;
 3. The `paymentBrandMetaData` map has `enableCardOnFile` as `true`;
 
