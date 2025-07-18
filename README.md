@@ -3,7 +3,7 @@
 
 ##### _Developer’s manual version_
 
-Version: 1.20 February 2025
+Version: 1.21 February 2025
 
 Contact e-mail address: contact@smartpay.rabobank.nl
 
@@ -32,6 +32,7 @@ Contact e-mail address: contact@smartpay.rabobank.nl
   * [Creating endpoint](#creating-endpoint)
   * [Sending order](#sending-order)
   * [Improve customer experience using payment brand parameters](#payment-brand-parameters)
+  * [Allow customers to save cards at rabo smart pay](#allow-customers-to-save-cards-at-rabo-smart-pay)
 - [Customer pays order](#customer-pays-order)
 - [Receive order updates](#receive-updates-about-orders)
 - [Request order status](#request-order-status)
@@ -43,6 +44,9 @@ Contact e-mail address: contact@smartpay.rabobank.nl
 
 <a name="changelog"></a>
 ### Changelog
+
+### Version 1.21
+* Added feature to allow customers to save cards at rabo smart pay
 
 #### Version 1.20
 * Added new endpoint to request the status / details of an order.
@@ -427,6 +431,7 @@ Below are all the fields with the name, a description, and the rules to which th
 | `paymentBrandForce`             | Is used to enforce the payment method                                                                                 | Optional, if the field `paymentBrand` is supplied then this field is required.                                                                                                                                                                                                                   |                                                                      |
 |                                 |                                                                                                                       | Must be one of the following values: FORCE_ONCE or FORCE_ALWAYS                                                                                                                                                                                                                                  |
 | `paymentBrandMetaData`          | Additional parameters specific to the supplied payment method                                                         | Optional, when this field is supplied then the fields `paymentBrand` and `paymentBrandForce` must be set as well.                                                                                                                                                                                |
+|                                 |                                                                                                                       | Optiona, setting `enableCardOnFile` to `true` will allow customers to save cards at rabo smart pay.                                                                                                                                                                                              |
 |                                 |                                                                                                                       | The value of this field is a key-value map of strings.                                                                                                                                                                                                                                           |
 | `customerInformation`           | A limited set of customer information                                                                                 | Optional                                                                                                                                                                                                                                                                                         |
 | `billingDetails`                | The billing address of this order                                                                                     | Optional                                                                                                                                                                                                                                                                                         |
@@ -436,7 +441,7 @@ Below are all the fields with the name, a description, and the rules to which th
 
 For more information on how to use the `paymentBrand`, `paymentBrandForce`, `paymentBrandMetaData`, `shopperRef` and the
 `skipHppResultPage` please consult
-[Improve customer experience using payment brand parameters](#payment-brand-parameters) and [Allow customers to save credit cards at rabo smart pay](#allow-customers-to-save-credit-cards-at-rabo-smart-pay)
+[Improve customer experience using payment brand parameters](#payment-brand-parameters) and [Allow customers to save cards at rabo smart pay](#allow-customers-to-save-cards-at-rabo-smart-pay)
 
 **Money**
 
@@ -1024,16 +1029,21 @@ the webshop. The success page (also referred to as the “Thank You” page) of 
 this case.
 
 <a name="cards-on-file"></a>
-#### Allow customers to save credit cards at rabo smart pay
-Smart pay now allows customers to save their cards for a webshop, and this can speed up the checkout process when
-customers come back to the same webshop using the same same credit card for checkout.
+#### Allow customers to save cards at rabo smart pay
+Implementing Card-on-File (CoF) functionality enables merchants' website to securely store shoppers’ payment card 
+details for future transactions. This feature is particularly useful for enhancing the customer experience by 
+streamlining repeat purchases. 
+Once a card is stored, returning customers can complete checkouts without re-entering their payment information, 
+reducing friction and increasing conversion rates. CoF is fully PCI-compliant and integrates with your existing payment 
+infrastructure, ensuring both security and convenience.
 
-This feature is enabled if:
-1. Webshop is configured via the merchant dashboard for the Cards on File feature;
-2. During order announcement, a `shopperRef` is provided and `emailAddress` of `customerInformation` is provided;
-3. The value of `paymentBrandMetaData.enableCardOnFile` is `true`;
+Enable this feature by:
+1. Enabling Card-on-File (CoF) in the merchant dashboard.
+2. Including `shopperRef` and `customerInformation.emailAddress` in the order request.
+3. Setting `paymentBrandMetaData.enableCardOnFile` to `true`
 
-Merchants will be able to manage the saved credit cards on behave of customers if necessary.
+Two API endpoints are available for merchants to manage saved cards: one allows them to retrieve a complete list of 
+saved cards associated with a specific shopper, and the other enables them to delete a saved card for that shopper.
 
 **Java**
 ```java
