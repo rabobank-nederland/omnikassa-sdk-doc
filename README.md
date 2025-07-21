@@ -3,7 +3,7 @@
 
 ##### _Developer’s manual version_
 
-Version: 1.21 February 2025
+Version: 1.21 July 2025
 
 Contact e-mail address: contact@smartpay.rabobank.nl
 
