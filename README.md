@@ -1039,7 +1039,7 @@ infrastructure, ensuring both security and convenience.
 
 Enable this feature by:
 1. Enabling Card-on-File (CoF) in the merchant dashboard.
-2. Including `shopperRef` and `customerInformation.emailAddress` in the order request.
+2. Including `shopperRef` and `customerInformation.emailAddress` in the order announcement.
 3. Setting `paymentBrandMetaData.enableCardOnFile` to `true`
 
 Two API endpoints are available for merchants to manage saved cards: one allows them to retrieve a complete list of 
